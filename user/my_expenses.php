@@ -8,6 +8,11 @@ $userId  = current_user_id();
 $adminId = current_admin_id();
 $categories = get_categories();
 
+// Fetch active users in group for edit modal participant checkboxes
+$uStmt = db()->prepare("SELECT user_id, full_name, email FROM users WHERE admin_id = ? AND status = 'active' ORDER BY full_name ASC");
+$uStmt->execute([$adminId]);
+$activeGroupUsers = $uStmt->fetchAll(PDO::FETCH_ASSOC);
+
 $pageTitle = 'My Expenses';
 $currentPage = 'user_my_expenses';
 require_once __DIR__ . '/../includes/header.php';
@@ -134,6 +139,9 @@ require_once __DIR__ . '/../includes/header.php';
                 <th>Paid By</th>
                 <th>Category</th>
                 <th>Amount</th>
+                <th>Split</th>
+                <th>Participants</th>
+                <th>Your Share</th>
                 <th>Date & Time</th>
                 <th>Method</th>
                 <th class="text-end no-export" style="width: 100px;">Actions</th>
@@ -141,7 +149,7 @@ require_once __DIR__ . '/../includes/header.php';
         </thead>
         <tbody id="expensesTableBody">
             <tr>
-                <td colspan="8" class="text-center py-4 text-muted">
+                <td colspan="11" class="text-center py-4 text-muted">
                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                     Loading your expenses...
                 </td>
@@ -212,9 +220,64 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-3">
                         <label class="form-label">Description / Notes</label>
                         <textarea class="form-control" id="edit_description" name="description" rows="2"></textarea>
+                    </div>
+
+                    <!-- Split Between Section -->
+                    <div class="border rounded p-3 bg-light-subtle mb-2">
+                        <label class="form-label d-flex align-items-center justify-content-between mb-2">
+                            <span><i class="fa-solid fa-users text-primary me-2"></i><strong>Split Expense Between</strong></span>
+                            <span class="badge bg-primary-subtle text-primary border px-2 py-1" id="editSplitModeBadge">Everyone</span>
+                        </label>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="form-check p-2 border rounded bg-white">
+                                    <input class="form-check-input ms-1" type="radio" name="split_type" id="edit_split_everyone" value="everyone" checked onchange="toggleEditSplitType()">
+                                    <label class="form-check-label ps-2 cursor-pointer fw-semibold small" for="edit_split_everyone">
+                                        <i class="fa-solid fa-globe text-primary me-1"></i> Everyone
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check p-2 border rounded bg-white">
+                                    <input class="form-check-input ms-1" type="radio" name="split_type" id="edit_split_selected" value="selected" onchange="toggleEditSplitType()">
+                                    <label class="form-check-label ps-2 cursor-pointer fw-semibold small" for="edit_split_selected">
+                                        <i class="fa-solid fa-user-check text-purple me-1" style="color:#7c3aed;"></i> Selected
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="editParticipantsContainer" style="display: none;" class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <span class="small fw-bold text-dark">Select Participants</span>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" onclick="editSelectAll(true)">All</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="editSelectAll(false)">Clear</button>
+                                </div>
+                            </div>
+                            <div class="row g-2" style="max-height: 180px; overflow-y: auto;" id="editParticipantsList">
+                                <?php foreach ($activeGroupUsers as $agu): ?>
+                                    <div class="col-sm-6">
+                                        <div class="form-check p-2 border rounded bg-white d-flex align-items-center gap-2">
+                                            <input class="form-check-input edit-participant-cb m-0" type="checkbox" name="participant_ids[]" value="<?= (int)$agu['user_id'] ?>" id="edit_user_<?= (int)$agu['user_id'] ?>" onchange="recalcEditShare()">
+                                            <label class="form-check-label w-100 small cursor-pointer m-0 text-truncate" for="edit_user_<?= (int)$agu['user_id'] ?>">
+                                                <?= e($agu['full_name']) ?> <?= ((int)$agu['user_id'] === $userId) ? '(You)' : '' ?>
+                                            </label>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Live Share Preview in Modal -->
+                        <div class="p-2 rounded border bg-white d-flex justify-content-between align-items-center">
+                            <span class="small text-muted" id="editShareSummary">Splits equally among everyone</span>
+                            <span class="fw-bold text-success" id="editShareAmount">Each: ₹0.00</span>
+                        </div>
                     </div>
                 </div>
 
@@ -293,6 +356,47 @@ function applyFilters() {
         });
 }
 
+const totalGroupUsersCount = " . count($activeGroupUsers) . ";
+
+function toggleEditSplitType() {
+    const isSelected = document.getElementById('edit_split_selected').checked;
+    document.getElementById('editParticipantsContainer').style.display = isSelected ? 'block' : 'none';
+    document.getElementById('editSplitModeBadge').innerText = isSelected ? 'Selected Members' : 'Everyone';
+    recalcEditShare();
+}
+
+function editSelectAll(selectAll) {
+    document.querySelectorAll('.edit-participant-cb').forEach(cb => {
+        cb.checked = selectAll;
+    });
+    recalcEditShare();
+}
+
+function recalcEditShare() {
+    const amount = parseFloat(document.getElementById('edit_amount').value) || 0;
+    const isSelected = document.getElementById('edit_split_selected').checked;
+    const summaryEl = document.getElementById('editShareSummary');
+    const shareEl = document.getElementById('editShareAmount');
+
+    if (isSelected) {
+        const checkedBoxes = document.querySelectorAll('.edit-participant-cb:checked');
+        const count = checkedBoxes.length;
+        if (count === 0) {
+            summaryEl.innerText = 'Select at least 1 participant';
+            shareEl.innerText = '₹0.00';
+        } else {
+            const share = (amount / count).toFixed(2);
+            summaryEl.innerText = 'Split among ' + count + ' member' + (count > 1 ? 's' : '');
+            shareEl.innerText = 'Each: ₹' + share;
+        }
+    } else {
+        const count = totalGroupUsersCount > 0 ? totalGroupUsersCount : 1;
+        const share = (amount / count).toFixed(2);
+        summaryEl.innerText = 'Splits equally among everyone (' + count + ' members)';
+        shareEl.innerText = 'Each: ₹' + share;
+    }
+}
+
 function openEditExpenseModal(id) {
     fetch('" . base_url('api/expenses.php?action=get&id=') . "' + id)
         .then(res => res.json())
@@ -307,6 +411,23 @@ function openEditExpenseModal(id) {
                 document.getElementById('edit_time').value = exp.expense_time;
                 document.getElementById('edit_payment_method').value = exp.payment_method;
                 document.getElementById('edit_description').value = exp.description || '';
+
+                // Handle split type & participants
+                const splitType = exp.split_type || 'everyone';
+                if (splitType === 'selected') {
+                    document.getElementById('edit_split_selected').checked = true;
+                } else {
+                    document.getElementById('edit_split_everyone').checked = true;
+                }
+
+                // Check active participant checkboxes
+                const participantUserIds = (exp.participants || []).map(p => parseInt(p.user_id));
+                document.querySelectorAll('.edit-participant-cb').forEach(cb => {
+                    const uid = parseInt(cb.value);
+                    cb.checked = participantUserIds.includes(uid);
+                });
+
+                toggleEditSplitType();
 
                 const modal = new bootstrap.Modal(document.getElementById('editExpenseModal'));
                 modal.show();
@@ -325,6 +446,9 @@ function confirmDeleteExpense(id, title) {
 
 document.addEventListener('DOMContentLoaded', function () {
     applyFilters();
+
+    // Listen to amount input in edit form for live share preview
+    document.getElementById('edit_amount').addEventListener('input', recalcEditShare);
 
     // Edit Expense Submission
     document.getElementById('editExpenseForm').addEventListener('submit', function (e) {

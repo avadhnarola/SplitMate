@@ -187,43 +187,75 @@ function calculate_settlement_matrix(int $admin_id, ?string $period_start = null
         ];
     }
 
-    // 2. Fetch spending per user for this admin (optional date range)
-    $sql = "SELECT user_id, COALESCE(SUM(amount), 0) as total_spent, COUNT(expense_id) as expense_count 
-            FROM expenses 
-            WHERE admin_id = ?";
-    $params = [$admin_id];
+    // 2. Total Group Expense & Expense Count per user
+    $paidSql = "SELECT user_id, COALESCE(SUM(amount), 0) as total_paid, COUNT(expense_id) as expense_count 
+                FROM expenses 
+                WHERE admin_id = ?";
+    $paidParams = [$admin_id];
 
     if (!empty($period_start) && !empty($period_end)) {
-        $sql .= " AND expense_date BETWEEN ? AND ?";
-        $params[] = $period_start;
-        $params[] = $period_end;
+        $paidSql .= " AND expense_date BETWEEN ? AND ?";
+        $paidParams[] = $period_start;
+        $paidParams[] = $period_end;
     }
-    $sql .= " GROUP BY user_id";
+    $paidSql .= " GROUP BY user_id";
 
-    $expStmt = $pdo->prepare($sql);
-    $expStmt->execute($params);
-    $spendingMap = [];
-    $totalExpensesPaise = 0;
+    $paidStmt = $pdo->prepare($paidSql);
+    $paidStmt->execute($paidParams);
+    $paidMap = [];
 
-    while ($row = $expStmt->fetch()) {
-        $spentPaise = (int)round((float)$row['total_spent'] * 100);
-        $spendingMap[$row['user_id']] = [
-            'total_spent' => (float)$row['total_spent'],
-            'total_spent_paise' => $spentPaise,
+    while ($row = $paidStmt->fetch()) {
+        $paidPaise = (int)round((float)$row['total_paid'] * 100);
+        $paidMap[$row['user_id']] = [
+            'total_paid' => (float)$row['total_paid'],
+            'total_paid_paise' => $paidPaise,
             'expense_count' => (int)$row['expense_count']
         ];
-        $totalExpensesPaise += $spentPaise;
     }
 
-    $totalGroupExpense = (float)($totalExpensesPaise / 100);
+    // Total Group Expense across all active users / expenses for this admin
+    $totalExpSql = "SELECT COALESCE(SUM(amount), 0) as total_amount FROM expenses WHERE admin_id = ?";
+    $totalExpParams = [$admin_id];
+    if (!empty($period_start) && !empty($period_end)) {
+        $totalExpSql .= " AND expense_date BETWEEN ? AND ?";
+        $totalExpParams[] = $period_start;
+        $totalExpParams[] = $period_end;
+    }
+    $totStmt = $pdo->prepare($totalExpSql);
+    $totStmt->execute($totalExpParams);
+    $totalGroupExpense = (float)($totStmt->fetchColumn() ?: 0.00);
 
-    // 3. Fair share calculation in paise
-    // Fair share = Total Group Expenses / Total Active Members
-    $fairSharePaise = (int)round($totalExpensesPaise / $memberCount);
-    $fairShare = (float)($fairSharePaise / 100);
+    // Fair share (for display) = Total Group Expenses / Total Active Members
+    $fairShare = ($memberCount > 0) ? round($totalGroupExpense / $memberCount, 2) : 0.00;
+
+    // 3. Total Owed per user from expense_participants
+    $owedSql = "SELECT ep.user_id, COALESCE(SUM(ep.share_amount), 0) as total_owed 
+                FROM expense_participants ep 
+                JOIN expenses e ON ep.expense_id = e.expense_id 
+                WHERE ep.admin_id = ?";
+    $owedParams = [$admin_id];
+
+    if (!empty($period_start) && !empty($period_end)) {
+        $owedSql .= " AND e.expense_date BETWEEN ? AND ?";
+        $owedParams[] = $period_start;
+        $owedParams[] = $period_end;
+    }
+    $owedSql .= " GROUP BY ep.user_id";
+
+    $owedStmt = $pdo->prepare($owedSql);
+    $owedStmt->execute($owedParams);
+    $owedMap = [];
+
+    while ($row = $owedStmt->fetch()) {
+        $owedPaise = (int)round((float)$row['total_owed'] * 100);
+        $owedMap[$row['user_id']] = [
+            'total_owed' => (float)$row['total_owed'],
+            'total_owed_paise' => $owedPaise
+        ];
+    }
 
     // 4. Calculate individual balances in paise
-    // Individual Balance = Amount Paid - Fair Share
+    // Net balance = Total Paid - Total Owed
     $userBalances = [];
     $creditors = [];
     $debtors = [];
@@ -231,11 +263,14 @@ function calculate_settlement_matrix(int $admin_id, ?string $period_start = null
 
     foreach ($activeUsers as $u) {
         $uid = (int)$u['user_id'];
-        $spent = $spendingMap[$uid]['total_spent'] ?? 0.00;
-        $spentPaise = $spendingMap[$uid]['total_spent_paise'] ?? 0;
-        $count = $spendingMap[$uid]['expense_count'] ?? 0;
+        $paid = $paidMap[$uid]['total_paid'] ?? 0.00;
+        $paidPaise = $paidMap[$uid]['total_paid_paise'] ?? 0;
+        $count = $paidMap[$uid]['expense_count'] ?? 0;
 
-        $netBalancePaise = $spentPaise - $fairSharePaise;
+        $owed = $owedMap[$uid]['total_owed'] ?? 0.00;
+        $owedPaise = $owedMap[$uid]['total_owed_paise'] ?? 0;
+
+        $netBalancePaise = $paidPaise - $owedPaise;
         $sumOfBalancesPaise += $netBalancePaise;
 
         $userBalances[$uid] = [
@@ -243,8 +278,12 @@ function calculate_settlement_matrix(int $admin_id, ?string $period_start = null
             'full_name' => $u['full_name'],
             'email' => $u['email'],
             'phone' => $u['phone'],
-            'total_spent' => $spent,
-            'total_spent_paise' => $spentPaise,
+            'total_spent' => $paid,
+            'total_spent_paise' => $paidPaise,
+            'total_paid' => $paid,
+            'total_paid_paise' => $paidPaise,
+            'total_owed' => $owed,
+            'total_owed_paise' => $owedPaise,
             'expense_count' => $count,
             'fair_share' => $fairShare,
             'net_balance' => (float)($netBalancePaise / 100),
@@ -253,10 +292,8 @@ function calculate_settlement_matrix(int $admin_id, ?string $period_start = null
         ];
     }
 
-    // If there's an odd rounding remainder (e.g. 1 paise difference because of integer division),
-    // adjust it on the highest spender so sum of balances is exactly 0.
+    // Rounding correction logic: sum must = 0
     if ($sumOfBalancesPaise !== 0) {
-        // Find highest spender
         $highestSpenderId = null;
         $maxSpent = -1;
         foreach ($userBalances as $uid => $b) {
@@ -582,4 +619,56 @@ function get_user_dashboard_stats(int $user_id, int $admin_id): array {
         'settlements' => $mySettlements
     ];
 }
+
+/**
+ * Get participants for a specific expense (scoped to admin_id for security)
+ */
+function get_expense_participants(int $expense_id, int $admin_id): array {
+    $stmt = db()->prepare(
+        "SELECT ep.user_id, u.full_name, ep.share_amount
+         FROM expense_participants ep
+         JOIN users u ON ep.user_id = u.user_id
+         WHERE ep.expense_id = ? AND ep.admin_id = ?
+         ORDER BY u.full_name ASC"
+    );
+    $stmt->execute([$expense_id, $admin_id]);
+    return $stmt->fetchAll();
+}
+
+/**
+ * Save participants for an expense. Validates user ownership, recalculates shares.
+ * Must be called inside a transaction.
+ */
+function save_expense_participants(int $expense_id, int $admin_id, array $participant_user_ids, float $total_amount): void {
+    $pdo = db();
+
+    // Validate: all participant IDs must belong to this admin
+    if (empty($participant_user_ids)) {
+        throw new \InvalidArgumentException('At least one participant is required.');
+    }
+    $placeholders = implode(',', array_fill(0, count($participant_user_ids), '?'));
+    $valid = $pdo->prepare("SELECT COUNT(*) FROM users WHERE user_id IN ($placeholders) AND admin_id = ?");
+    $valid->execute(array_merge($participant_user_ids, [$admin_id]));
+    $validCount = (int)$valid->fetchColumn();
+    if ($validCount !== count($participant_user_ids)) {
+        throw new \InvalidArgumentException('One or more participants do not belong to this admin group.');
+    }
+
+    // Delete existing participant rows for this expense
+    $del = $pdo->prepare("DELETE FROM expense_participants WHERE expense_id = ?");
+    $del->execute([$expense_id]);
+
+    // Calculate shares using integer paise for exactness
+    $count = count($participant_user_ids);
+    $totalPaise = (int)round($total_amount * 100);
+    $basePaise = intdiv($totalPaise, $count);
+    $remainder = $totalPaise - ($basePaise * $count);
+
+    $ins = $pdo->prepare("INSERT INTO expense_participants (expense_id, user_id, admin_id, share_amount) VALUES (?, ?, ?, ?)");
+    foreach (array_values($participant_user_ids) as $idx => $uid) {
+        $sharePaise = $basePaise + ($idx < $remainder ? 1 : 0);
+        $ins->execute([$expense_id, (int)$uid, $admin_id, round($sharePaise / 100, 2)]);
+    }
+}
+
 

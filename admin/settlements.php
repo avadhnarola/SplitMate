@@ -11,6 +11,13 @@ $pdo = db();
 $periodStart = trim($_GET['period_start'] ?? '');
 $periodEnd   = trim($_GET['period_end'] ?? '');
 
+// Auto-sync settlements into DB on every page load so the table is always current
+sync_settlements_to_database(
+    $adminId,
+    !empty($periodStart) ? $periodStart : null,
+    !empty($periodEnd)   ? $periodEnd   : null
+);
+
 // Calculate live greedy settlement matrix
 $matrix = calculate_settlement_matrix($adminId, !empty($periodStart) ? $periodStart : null, !empty($periodEnd) ? $periodEnd : null);
 
@@ -87,12 +94,12 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <!-- Per Person Fair Share -->
+    <!-- Per Person Fair Share / Average Share -->
     <div class="col-sm-6 col-xl">
         <div class="sm-stat-card">
-            <div class="stat-title">Per Person Share</div>
+            <div class="stat-title">Avg Share Per Person</div>
             <div class="stat-value text-primary"><?= format_currency($matrix['fair_share']) ?></div>
-            <div class="stat-subtext">Across <?= $matrix['active_members_count'] ?> members</div>
+            <div class="stat-subtext">Across <?= $matrix['active_members_count'] ?> members (participant splits apply)</div>
         </div>
     </div>
 
@@ -151,7 +158,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark"><?= e($b['full_name']) ?></div>
-                                    <small class="text-muted">Paid: <?= format_currency($b['total_spent']) ?></small>
+                                    <small class="text-muted">Paid: <?= format_currency($b['total_paid'] ?? $b['total_spent']) ?> | Share: <?= format_currency($b['total_owed'] ?? 0) ?></small>
                                 </div>
                             </div>
                             <div class="text-end">
@@ -192,7 +199,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark"><?= e($b['full_name']) ?></div>
-                                    <small class="text-muted">Paid: <?= format_currency($b['total_spent']) ?></small>
+                                    <small class="text-muted">Paid: <?= format_currency($b['total_paid'] ?? $b['total_spent']) ?> | Share: <?= format_currency($b['total_owed'] ?? 0) ?></small>
                                 </div>
                             </div>
                             <div class="text-end">
@@ -208,6 +215,98 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- ========================================================
+     User Balances Breakdown Table (Participant-Based)
+     ======================================================== -->
+<div class="sm-card p-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+        <div>
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-scale-balanced text-primary me-2"></i>Member Balances Breakdown
+            </h5>
+            <small class="text-muted">
+                Transparent participant accounting showing what each member paid vs. their assigned shares
+            </small>
+        </div>
+        <span class="badge bg-light text-muted border py-2 px-3" data-bs-toggle="tooltip" title="Balance = Total Paid − Total Share Assigned Across All Participated Expenses">
+            <i class="fa-solid fa-circle-info text-primary me-1"></i> Balance = Total Paid − Total Share Assigned Across All Participated Expenses
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom mb-0" id="userBalancesTable">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">#</th>
+                    <th>Member</th>
+                    <th>Total Paid</th>
+                    <th>Total Owed (Share)</th>
+                    <th>
+                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Balance = Total Paid − Total Share Assigned Across All Participated Expenses" style="cursor: help; border-bottom: 1px dashed #64748b;">
+                            Net Balance <i class="fa-solid fa-circle-question small text-muted"></i>
+                        </span>
+                    </th>
+                    <th class="text-end">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($matrix['user_balances'])): ?>
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No active members found.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php 
+                    $uIdx = 1;
+                    foreach ($matrix['user_balances'] as $u): 
+                        $net = (float)$u['net_balance'];
+                        $isCred = ($net > 0);
+                        $isDebt = ($net < 0);
+                        $paid = (float)($u['total_paid'] ?? $u['total_spent'] ?? 0);
+                        $owed = (float)($u['total_owed'] ?? 0);
+                    ?>
+                        <tr>
+                            <td class="text-muted small"><?= $uIdx++ ?></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar-sm" style="background: <?= $isCred ? '#10b981' : ($isDebt ? '#ef4444' : '#64748b') ?>; width: 28px; height: 28px; font-size: 0.72rem;">
+                                        <?= strtoupper(substr($u['full_name'], 0, 1)) ?>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark"><?= e($u['full_name']) ?></div>
+                                        <small class="text-muted"><?= e($u['email']) ?></small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="fw-semibold text-dark"><?= format_currency($paid) ?></td>
+                            <td class="fw-semibold text-muted"><?= format_currency($owed) ?></td>
+                            <td>
+                                <span class="fw-bold <?= $isCred ? 'text-success' : ($isDebt ? 'text-danger' : 'text-secondary') ?>" data-bs-toggle="tooltip" title="Balance = Total Paid − Total Share Assigned Across All Participated Expenses">
+                                    <?= ($isCred ? '+' : '') . format_currency($net) ?>
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <?php if ($isCred): ?>
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="fa-solid fa-arrow-down-left me-1"></i> Creditor (Receives)
+                                    </span>
+                                <?php elseif ($isDebt): ?>
+                                    <span class="badge bg-danger-subtle text-danger">
+                                        <i class="fa-solid fa-arrow-up-right me-1"></i> Debtor (Pays)
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary-subtle text-secondary">
+                                        <i class="fa-solid fa-check me-1"></i> Balanced
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -249,7 +348,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <div class="fw-bold text-dark text-truncate" style="max-width: 90px;"><?= e($inst['payer_name']) ?></div>
                             </div>
-                            <div class="text-muted"><i class="fa-solid fa-arrow-right text-primary"></i></div>
+                            <div class="text-muted"><i class="fa-solid fa-arrow-right settlement-arrow"></i></div>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="user-avatar-sm" style="background: #10b981; width: 26px; height: 26px; font-size: 0.7rem;">
                                     <?= strtoupper(substr($inst['receiver_name'], 0, 1)) ?>
@@ -458,6 +557,11 @@ function recalculateAndSync() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Initialize Bootstrap tooltips
+    document.querySelectorAll('[data-bs-toggle=\\'tooltip\\']').forEach(function (el) {
+        new bootstrap.Tooltip(el);
+    });
+
     document.getElementById('markPaidForm').addEventListener('submit', function (e) {
         e.preventDefault();
         const btn = document.getElementById('submitMarkPaidBtn');

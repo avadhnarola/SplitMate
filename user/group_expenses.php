@@ -147,6 +147,9 @@ require_once __DIR__ . '/../includes/header.php';
                 <th>Paid By</th>
                 <th>Category</th>
                 <th>Amount</th>
+                <th>Split</th>
+                <th>Participants</th>
+                <th>Your Share</th>
                 <th>Date & Time</th>
                 <th>Method</th>
                 <th class="text-end no-export" style="width: 100px;">Actions</th>
@@ -154,7 +157,7 @@ require_once __DIR__ . '/../includes/header.php';
         </thead>
         <tbody id="expensesTableBody">
             <tr>
-                <td colspan="8" class="text-center py-4 text-muted">
+                <td colspan="11" class="text-center py-4 text-muted">
                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                     Loading group expenses...
                 </td>

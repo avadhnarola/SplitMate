@@ -7,6 +7,7 @@ require_admin();
 $adminId = current_admin_id();
 $stats = get_admin_dashboard_stats($adminId);
 $categories = get_categories();
+$matrix = calculate_settlement_matrix($adminId);
 
 $pageTitle = 'Admin Dashboard';
 $currentPage = 'admin_dashboard';
@@ -75,15 +76,15 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <!-- Average Expense Per User -->
+    <!-- Average Share Per User -->
     <div class="col-sm-6 col-xl-2">
         <div class="sm-stat-card">
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <div class="stat-title mb-0">Avg / User</div>
+                <div class="stat-title mb-0">Avg Share / User</div>
                 <i class="fa-solid fa-scale-balanced text-info"></i>
             </div>
-            <div class="stat-value" style="font-size: 1.35rem;"><?= format_currency($stats['avg_per_user']) ?></div>
-            <div class="stat-subtext">Fair share baseline</div>
+            <div class="stat-value" style="font-size: 1.35rem;"><?= format_currency($matrix['fair_share'] ?? $stats['avg_per_user']) ?></div>
+            <div class="stat-subtext">Avg across <?= $matrix['active_members_count'] ?? $stats['total_users'] ?> members</div>
         </div>
     </div>
 

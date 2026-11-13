@@ -160,6 +160,8 @@ require_once __DIR__ . '/../includes/header.php';
                 <th>Paid By</th>
                 <th>Category</th>
                 <th>Amount</th>
+                <th>Split</th>
+                <th>Participants</th>
                 <th>Date & Time</th>
                 <th>Method</th>
                 <th class="text-end no-export" style="width: 100px;">Actions</th>
@@ -167,7 +169,7 @@ require_once __DIR__ . '/../includes/header.php';
         </thead>
         <tbody id="expensesTableBody">
             <tr>
-                <td colspan="8" class="text-center py-4 text-muted">
+                <td colspan="10" class="text-center py-4 text-muted">
                     <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                     Loading expenses...
                 </td>
@@ -246,9 +248,64 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-3">
                         <label class="form-label">Description / Notes</label>
                         <textarea class="form-control" name="description" rows="2" placeholder="Optional notes..."></textarea>
+                    </div>
+
+                    <!-- Split Between Section (Admin Add) -->
+                    <div class="border rounded p-3 bg-light-subtle mb-2">
+                        <label class="form-label d-flex align-items-center justify-content-between mb-2">
+                            <span><i class="fa-solid fa-users text-primary me-2"></i><strong>Split Expense Between</strong></span>
+                            <span class="badge bg-primary-subtle text-primary border px-2 py-1" id="addAdminSplitBadge">Everyone</span>
+                        </label>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="form-check p-2 border rounded bg-white">
+                                    <input class="form-check-input ms-1" type="radio" name="split_type" id="add_split_everyone" value="everyone" checked onchange="toggleAdminAddSplit()">
+                                    <label class="form-check-label ps-2 cursor-pointer fw-semibold small" for="add_split_everyone">
+                                        <i class="fa-solid fa-globe text-primary me-1"></i> Everyone
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check p-2 border rounded bg-white">
+                                    <input class="form-check-input ms-1" type="radio" name="split_type" id="add_split_selected" value="selected" onchange="toggleAdminAddSplit()">
+                                    <label class="form-check-label ps-2 cursor-pointer fw-semibold small" for="add_split_selected">
+                                        <i class="fa-solid fa-user-check text-purple me-1" style="color:#7c3aed;"></i> Selected
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="addAdminParticipantsContainer" style="display: none;" class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <span class="small fw-bold text-dark">Select Participants</span>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" onclick="adminAddSelectAll(true)">All</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="adminAddSelectAll(false)">Clear</button>
+                                </div>
+                            </div>
+                            <div class="row g-2" style="max-height: 180px; overflow-y: auto;">
+                                <?php foreach ($adminUsers as $u): ?>
+                                    <div class="col-sm-6">
+                                        <div class="form-check p-2 border rounded bg-white d-flex align-items-center gap-2">
+                                            <input class="form-check-input add-admin-participant-cb m-0" type="checkbox" name="participant_ids[]" value="<?= (int)$u['user_id'] ?>" id="add_user_<?= (int)$u['user_id'] ?>" checked onchange="recalcAdminAddShare()">
+                                            <label class="form-check-label w-100 small cursor-pointer m-0 text-truncate" for="add_user_<?= (int)$u['user_id'] ?>">
+                                                <?= e($u['full_name']) ?>
+                                            </label>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Live Share Preview in Add Modal -->
+                        <div class="p-2 rounded border bg-white d-flex justify-content-between align-items-center">
+                            <span class="small text-muted" id="addAdminShareSummary">Splits equally among everyone</span>
+                            <span class="fw-bold text-success" id="addAdminShareAmount">Each: ₹0.00</span>
+                        </div>
                     </div>
                 </div>
 
@@ -326,9 +383,64 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-3">
                         <label class="form-label">Description / Notes</label>
                         <textarea class="form-control" id="edit_description" name="description" rows="2"></textarea>
+                    </div>
+
+                    <!-- Split Between Section (Admin Edit) -->
+                    <div class="border rounded p-3 bg-light-subtle mb-2">
+                        <label class="form-label d-flex align-items-center justify-content-between mb-2">
+                            <span><i class="fa-solid fa-users text-primary me-2"></i><strong>Split Expense Between</strong></span>
+                            <span class="badge bg-primary-subtle text-primary border px-2 py-1" id="editSplitModeBadge">Everyone</span>
+                        </label>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="form-check p-2 border rounded bg-white">
+                                    <input class="form-check-input ms-1" type="radio" name="split_type" id="edit_split_everyone" value="everyone" checked onchange="toggleAdminEditSplit()">
+                                    <label class="form-check-label ps-2 cursor-pointer fw-semibold small" for="edit_split_everyone">
+                                        <i class="fa-solid fa-globe text-primary me-1"></i> Everyone
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check p-2 border rounded bg-white">
+                                    <input class="form-check-input ms-1" type="radio" name="split_type" id="edit_split_selected" value="selected" onchange="toggleAdminEditSplit()">
+                                    <label class="form-check-label ps-2 cursor-pointer fw-semibold small" for="edit_split_selected">
+                                        <i class="fa-solid fa-user-check text-purple me-1" style="color:#7c3aed;"></i> Selected
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="editAdminParticipantsContainer" style="display: none;" class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                                <span class="small fw-bold text-dark">Select Participants</span>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" onclick="adminEditSelectAll(true)">All</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="adminEditSelectAll(false)">Clear</button>
+                                </div>
+                            </div>
+                            <div class="row g-2" style="max-height: 180px; overflow-y: auto;">
+                                <?php foreach ($adminUsers as $u): ?>
+                                    <div class="col-sm-6">
+                                        <div class="form-check p-2 border rounded bg-white d-flex align-items-center gap-2">
+                                            <input class="form-check-input edit-admin-participant-cb m-0" type="checkbox" name="participant_ids[]" value="<?= (int)$u['user_id'] ?>" id="edit_user_<?= (int)$u['user_id'] ?>" onchange="recalcAdminEditShare()">
+                                            <label class="form-check-label w-100 small cursor-pointer m-0 text-truncate" for="edit_user_<?= (int)$u['user_id'] ?>">
+                                                <?= e($u['full_name']) ?>
+                                            </label>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Live Share Preview in Edit Modal -->
+                        <div class="p-2 rounded border bg-white d-flex justify-content-between align-items-center">
+                            <span class="small text-muted" id="editAdminShareSummary">Splits equally among everyone</span>
+                            <span class="fw-bold text-success" id="editAdminShareAmount">Each: ₹0.00</span>
+                        </div>
                     </div>
                 </div>
 
@@ -410,6 +522,86 @@ function applyFilters() {
         .catch(err => console.error('Filter fetch error:', err));
 }
 
+const totalAdminUsersCount = " . count($adminUsers) . ";
+
+function toggleAdminAddSplit() {
+    const isSelected = document.getElementById('add_split_selected').checked;
+    document.getElementById('addAdminParticipantsContainer').style.display = isSelected ? 'block' : 'none';
+    document.getElementById('addAdminSplitBadge').innerText = isSelected ? 'Selected Members' : 'Everyone';
+    recalcAdminAddShare();
+}
+
+function adminAddSelectAll(selectAll) {
+    document.querySelectorAll('.add-admin-participant-cb').forEach(cb => {
+        cb.checked = selectAll;
+    });
+    recalcAdminAddShare();
+}
+
+function recalcAdminAddShare() {
+    const amount = parseFloat(document.querySelector('#addExpenseForm input[name=\"amount\"]').value) || 0;
+    const isSelected = document.getElementById('add_split_selected').checked;
+    const summaryEl = document.getElementById('addAdminShareSummary');
+    const shareEl = document.getElementById('addAdminShareAmount');
+
+    if (isSelected) {
+        const checkedBoxes = document.querySelectorAll('.add-admin-participant-cb:checked');
+        const count = checkedBoxes.length;
+        if (count === 0) {
+            summaryEl.innerText = 'Select at least 1 participant';
+            shareEl.innerText = '₹0.00';
+        } else {
+            const share = (amount / count).toFixed(2);
+            summaryEl.innerText = 'Split among ' + count + ' member' + (count > 1 ? 's' : '');
+            shareEl.innerText = 'Each: ₹' + share;
+        }
+    } else {
+        const count = totalAdminUsersCount > 0 ? totalAdminUsersCount : 1;
+        const share = (amount / count).toFixed(2);
+        summaryEl.innerText = 'Splits equally among everyone (' + count + ' members)';
+        shareEl.innerText = 'Each: ₹' + share;
+    }
+}
+
+function toggleAdminEditSplit() {
+    const isSelected = document.getElementById('edit_split_selected').checked;
+    document.getElementById('editAdminParticipantsContainer').style.display = isSelected ? 'block' : 'none';
+    document.getElementById('editSplitModeBadge').innerText = isSelected ? 'Selected Members' : 'Everyone';
+    recalcAdminEditShare();
+}
+
+function adminEditSelectAll(selectAll) {
+    document.querySelectorAll('.edit-admin-participant-cb').forEach(cb => {
+        cb.checked = selectAll;
+    });
+    recalcAdminEditShare();
+}
+
+function recalcAdminEditShare() {
+    const amount = parseFloat(document.getElementById('edit_amount').value) || 0;
+    const isSelected = document.getElementById('edit_split_selected').checked;
+    const summaryEl = document.getElementById('editAdminShareSummary');
+    const shareEl = document.getElementById('editAdminShareAmount');
+
+    if (isSelected) {
+        const checkedBoxes = document.querySelectorAll('.edit-admin-participant-cb:checked');
+        const count = checkedBoxes.length;
+        if (count === 0) {
+            summaryEl.innerText = 'Select at least 1 participant';
+            shareEl.innerText = '₹0.00';
+        } else {
+            const share = (amount / count).toFixed(2);
+            summaryEl.innerText = 'Split among ' + count + ' member' + (count > 1 ? 's' : '');
+            shareEl.innerText = 'Each: ₹' + share;
+        }
+    } else {
+        const count = totalAdminUsersCount > 0 ? totalAdminUsersCount : 1;
+        const share = (amount / count).toFixed(2);
+        summaryEl.innerText = 'Splits equally among everyone (' + count + ' members)';
+        shareEl.innerText = 'Each: ₹' + share;
+    }
+}
+
 // Open Edit Modal
 function openEditExpenseModal(id) {
     fetch('" . base_url('api/expenses.php?action=get&id=') . "' + id)
@@ -425,6 +617,22 @@ function openEditExpenseModal(id) {
                 document.getElementById('edit_time').value = exp.expense_time;
                 document.getElementById('edit_payment_method').value = exp.payment_method;
                 document.getElementById('edit_description').value = exp.description || '';
+
+                // Pre-populate split type and participants
+                const splitType = exp.split_type || 'everyone';
+                if (splitType === 'selected') {
+                    document.getElementById('edit_split_selected').checked = true;
+                } else {
+                    document.getElementById('edit_split_everyone').checked = true;
+                }
+
+                const participantUserIds = (exp.participants || []).map(p => parseInt(p.user_id));
+                document.querySelectorAll('.edit-admin-participant-cb').forEach(cb => {
+                    const uid = parseInt(cb.value);
+                    cb.checked = participantUserIds.includes(uid);
+                });
+
+                toggleAdminEditSplit();
 
                 const modal = new bootstrap.Modal(document.getElementById('editExpenseModal'));
                 modal.show();
@@ -445,6 +653,12 @@ function confirmDeleteExpense(id, title) {
 document.addEventListener('DOMContentLoaded', function () {
     // Initial Load
     applyFilters();
+
+    // Listen to amount changes for live preview
+    const addAmt = document.querySelector('#addExpenseForm input[name=\"amount\"]');
+    if (addAmt) addAmt.addEventListener('input', recalcAdminAddShare);
+    const editAmt = document.getElementById('edit_amount');
+    if (editAmt) editAmt.addEventListener('input', recalcAdminEditShare);
 
     // Add Expense Submission
     document.getElementById('addExpenseForm').addEventListener('submit', function (e) {

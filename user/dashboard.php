@@ -7,7 +7,15 @@ require_user();
 $userId  = current_user_id();
 $adminId = current_admin_id();
 
+// Auto-sync settlement instructions into DB so Mark Paid works immediately.
+// This is lightweight: runs the greedy algorithm and upserts only changed rows.
+sync_settlements_to_database($adminId);
+
 $stats = get_user_dashboard_stats($userId, $adminId);
+$matrix = calculate_settlement_matrix($adminId);
+$userBal = $matrix['user_balances'][$userId] ?? null;
+$totalPaid = $userBal['total_paid'] ?? $stats['my_total'];
+$totalOwed = $userBal['total_owed'] ?? $stats['my_fair_share'];
 
 $pageTitle = 'My Dashboard';
 $currentPage = 'user_dashboard';
@@ -38,17 +46,31 @@ require_once __DIR__ . '/../includes/header.php';
      User Dashboard Metric Cards (Prompt Requirement)
      ======================================================== -->
 <div class="row g-3 mb-4">
-    <!-- My Total Spending -->
+    <!-- Total You Paid -->
     <div class="col-sm-6 col-xl-3">
         <div class="sm-stat-card">
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <div class="stat-title mb-0">My Total Spending</div>
+                <div class="stat-title mb-0">Total You Paid</div>
                 <div class="stat-icon-wrapper stat-icon-primary" style="width: 36px; height: 36px; font-size: 1rem;">
                     <i class="fa-solid fa-wallet"></i>
                 </div>
             </div>
-            <div class="stat-value text-dark"><?= format_currency($stats['my_total']) ?></div>
-            <div class="stat-subtext"><?= $stats['my_count'] ?> expenses recorded by me</div>
+            <div class="stat-value text-dark"><?= format_currency($totalPaid) ?></div>
+            <div class="stat-subtext"><?= $stats['my_count'] ?> expenses paid by you</div>
+        </div>
+    </div>
+
+    <!-- Total You Owe (My Share of Expenses) -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="sm-stat-card">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="stat-title mb-0">Total You Owe</div>
+                <div class="stat-icon-wrapper stat-icon-amber" style="width: 36px; height: 36px; font-size: 1rem;">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+            </div>
+            <div class="stat-value text-warning"><?= format_currency($totalOwed) ?></div>
+            <div class="stat-subtext">Sum of your shares across all expenses</div>
         </div>
     </div>
 
@@ -57,7 +79,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="sm-stat-card">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="stat-title mb-0">Group Total Spending</div>
-                <div class="stat-icon-wrapper stat-icon-amber" style="width: 36px; height: 36px; font-size: 1rem;">
+                <div class="stat-icon-wrapper stat-icon-primary" style="width: 36px; height: 36px; font-size: 1rem;">
                     <i class="fa-solid fa-layer-group"></i>
                 </div>
             </div>
@@ -66,24 +88,10 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <!-- My Fair Share -->
-    <div class="col-sm-6 col-xl-3">
-        <div class="sm-stat-card">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <div class="stat-title mb-0">My Fair Share</div>
-                <div class="stat-icon-wrapper stat-icon-primary" style="width: 36px; height: 36px; font-size: 1rem;">
-                    <i class="fa-solid fa-divide"></i>
-                </div>
-            </div>
-            <div class="stat-value text-primary"><?= format_currency($stats['my_fair_share']) ?></div>
-            <div class="stat-subtext">Equal split target for you</div>
-        </div>
-    </div>
-
     <!-- My Current Balance -->
     <div class="col-sm-6 col-xl-3">
         <?php
-        $myBal = (float)$stats['my_balance'];
+        $myBal = (float)($userBal['net_balance'] ?? $stats['my_balance']);
         $isReceiving = ($myBal > 0);
         $isOwing = ($myBal < 0);
         ?>

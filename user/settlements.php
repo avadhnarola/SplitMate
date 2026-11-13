@@ -8,6 +8,9 @@ $userId  = current_user_id();
 $adminId = current_admin_id();
 $pdo = db();
 
+// Auto-sync settlement instructions into DB so Mark Paid works correctly
+sync_settlements_to_database($adminId);
+
 // Calculate live greedy settlement matrix
 $matrix = calculate_settlement_matrix($adminId);
 $myBalance = $matrix['user_balances'][$userId] ?? null;
@@ -51,15 +54,17 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- ========================================================
-     My Personal Standing Highlight Card
+     My Personal Standing Highlight Card & Stat Cards
      ======================================================== -->
 <?php if ($myBalance): ?>
     <?php
+    $totalPaid = (float)($myBalance['total_paid'] ?? $myBalance['total_spent'] ?? 0);
+    $totalOwed = (float)($myBalance['total_owed'] ?? 0);
     $bal = (float)$myBalance['net_balance'];
     $isReceiving = ($bal > 0);
     $isOwing = ($bal < 0);
     ?>
-    <div class="p-4 mb-4 rounded-3 border shadow-sm" style="background: <?= $isReceiving ? '#ecfdf5' : ($isOwing ? '#fef2f2' : '#f8fafc') ?>; border-color: <?= $isReceiving ? '#a7f3d0' : ($isOwing ? '#fecaca' : '#e2e8f0') ?> !important;">
+    <div class="p-4 mb-4 rounded-3 border shadow-sm sm-card" style="background: <?= $isReceiving ? '#ecfdf5' : ($isOwing ? '#fef2f2' : '#f8fafc') ?>; border-color: <?= $isReceiving ? '#a7f3d0' : ($isOwing ? '#fecaca' : '#e2e8f0') ?> !important;">
         <div class="row align-items-center g-3">
             <div class="col-md-7">
                 <div class="d-flex align-items-center gap-3">
@@ -77,15 +82,49 @@ require_once __DIR__ . '/../includes/header.php';
                             <?php endif; ?>
                         </h4>
                         <div class="text-muted small">
-                            You paid <strong><?= format_currency($myBalance['total_spent']) ?></strong> | Group Fair Share: <strong><?= format_currency($matrix['fair_share']) ?></strong>
+                            <i class="fa-solid fa-circle-info me-1 text-primary"></i>Your balance is based on what you paid vs. your assigned share of each expense.
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-5 text-md-end">
-                <div class="small text-muted mb-1">Group Equal Contribution Target:</div>
-                <div class="fs-5 fw-bold text-dark"><?= format_currency($matrix['fair_share']) ?> / member</div>
-                <small class="text-muted">Total group spent: <?= format_currency($matrix['total_group_expense']) ?> across <?= $matrix['active_members_count'] ?> active members</small>
+                <div class="small text-muted mb-1">Group Total Expenses:</div>
+                <div class="fs-4 fw-bold text-dark"><?= format_currency($matrix['total_group_expense']) ?></div>
+                <small class="text-muted">Across <?= $matrix['active_members_count'] ?> active members</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="sm-stat-card">
+                <div class="stat-title">Total Paid</div>
+                <div class="stat-value text-primary"><?= format_currency($totalPaid) ?></div>
+                <div class="stat-subtext">Direct out-of-pocket expenses</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="sm-stat-card">
+                <div class="stat-title">My Share of Expenses</div>
+                <div class="stat-value text-warning"><?= format_currency($totalOwed) ?></div>
+                <div class="stat-subtext">Total owed across your participated expenses</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="sm-stat-card">
+                <div class="stat-title">Net Balance</div>
+                <div class="stat-value <?= $isReceiving ? 'text-success' : ($isOwing ? 'text-danger' : 'text-dark') ?>">
+                    <?= ($bal > 0 ? '+' : '') . format_currency($bal) ?>
+                </div>
+                <div class="stat-subtext"><?= $isReceiving ? 'Receivable from group' : ($isOwing ? 'Payable to group' : 'All balanced') ?></div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="sm-stat-card">
+                <div class="stat-title">Group Total</div>
+                <div class="stat-value text-dark"><?= format_currency($matrix['total_group_expense']) ?></div>
+                <div class="stat-subtext">Active group total expenditure</div>
             </div>
         </div>
     </div>
@@ -133,7 +172,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     <?= e($inst['payer_name']) ?> <?= $isMePayer ? '(You)' : '' ?>
                                 </div>
                             </div>
-                            <div class="text-muted"><i class="fa-solid fa-arrow-right text-primary"></i></div>
+                            <div class="text-muted"><i class="fa-solid fa-arrow-right settlement-arrow"></i></div>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="user-avatar-sm" style="background: #10b981; width: 26px; height: 26px; font-size: 0.7rem;">
                                     <?= strtoupper(substr($inst['receiver_name'], 0, 1)) ?>
