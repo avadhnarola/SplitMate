@@ -153,18 +153,25 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- Header -->
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
-        <h3 class="fw-bold text-dark mb-1">Add Group Expense</h3>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                <i class="fa-solid fa-receipt me-1"></i>New Entry
+            </span>
+            <span class="text-muted small">Group #<?= (int)$adminId ?></span>
+        </div>
+        <h3 class="fw-bold text-dark mb-0">Add Group Expense</h3>
         <p class="text-muted mb-0 small">Record a new payment and choose whether to split across everyone or specific members</p>
     </div>
     <div>
-        <a href="<?= base_url('user/my_expenses.php') ?>" class="btn btn-outline-secondary btn-sm">
-            <i class="fa-solid fa-list me-1"></i> View My Expenses
+        <a href="<?= base_url('user/my_expenses.php') ?>" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2 px-3 py-2 rounded-3">
+            <i class="fa-solid fa-list text-primary"></i>
+            <span>View My Expenses</span>
         </a>
     </div>
 </div>
 
 <?php if (!empty($error)): ?>
-    <div class="alert alert-danger py-2 small d-flex align-items-center gap-2 mb-3">
+    <div class="alert alert-danger py-2 small d-flex align-items-center gap-2 mb-3 rounded-3 shadow-sm">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <span><?= e($error) ?></span>
     </div>
@@ -173,37 +180,46 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="row g-4">
     <!-- Expense Entry Form Card -->
     <div class="col-lg-7">
-        <div class="sm-card p-4">
-            <h5 class="fw-bold text-dark mb-3">
-                <i class="fa-solid fa-receipt text-primary me-2"></i>Expense Details
-            </h5>
+        <div class="sm-card p-4 p-md-5" style="border-radius: 16px;">
+            <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #6366f1); font-size: 1rem;">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Expense Details</h5>
+                        <small class="text-muted">Enter bill details and participant distribution</small>
+                    </div>
+                </div>
+                <span class="badge bg-light text-muted border px-2 py-1" style="font-size: 0.75rem;">Required *</span>
+            </div>
 
             <form action="" method="POST" id="expenseForm" novalidate>
                 <?= csrf_field() ?>
 
                 <!-- Expense Title -->
-                <div class="mb-3">
+                <div class="mb-4">
                     <label for="title" class="form-label">Expense Title <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-heading"></i></span>
-                        <input type="text" class="form-control" id="title" name="title" placeholder="e.g. Dinner, Weekend Groceries, Taxi Fare" required autofocus>
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-heading"></i></span>
+                        <input type="text" class="form-control border-start-0 py-2 fs-6 fw-semibold" id="title" name="title" placeholder="e.g. Dinner, Weekend Groceries, Taxi Fare" required autofocus>
                     </div>
                 </div>
 
                 <!-- Amount & Category Grid -->
-                <div class="row g-3 mb-3">
+                <div class="row g-3 mb-4">
                     <div class="col-sm-6">
                         <label for="amount" class="form-label">Amount (₹) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light fw-bold text-dark">₹</span>
-                            <input type="number" step="0.01" min="0.01" class="form-control fw-bold" id="amount" name="amount" placeholder="1500.00" required>
+                            <span class="input-group-text bg-light fw-bold text-primary border-end-0 fs-5">₹</span>
+                            <input type="number" step="0.01" min="0.01" class="form-control border-start-0 input-amount-highlight" id="amount" name="amount" placeholder="1500.00" required>
                         </div>
                     </div>
                     <div class="col-sm-6">
                         <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-tags"></i></span>
-                            <select class="form-select" id="category" name="category" required>
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-tags"></i></span>
+                            <select class="form-select border-start-0 py-2 fw-medium" id="category" name="category" required>
                                 <option value="">-- Choose Category --</option>
                                 <?php foreach ($categories as $cat): ?>
                                     <option value="<?= e($cat['name']) ?>"><?= e($cat['name']) ?></option>
@@ -214,18 +230,18 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
 
                 <!-- Date, Time & Payment Method Grid -->
-                <div class="row g-3 mb-3">
+                <div class="row g-3 mb-4">
                     <div class="col-sm-4">
                         <label for="expense_date" class="form-label">Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="expense_date" name="expense_date" value="<?= date('Y-m-d') ?>" required>
+                        <input type="date" class="form-control py-2" id="expense_date" name="expense_date" value="<?= date('Y-m-d') ?>" required>
                     </div>
                     <div class="col-sm-4">
                         <label for="expense_time" class="form-label">Time <span class="text-danger">*</span></label>
-                        <input type="time" class="form-control" id="expense_time" name="expense_time" value="<?= date('H:i') ?>" required>
+                        <input type="time" class="form-control py-2" id="expense_time" name="expense_time" value="<?= date('H:i') ?>" required>
                     </div>
                     <div class="col-sm-4">
                         <label for="payment_method" class="form-label">Payment Method</label>
-                        <select class="form-select" id="payment_method" name="payment_method">
+                        <select class="form-select py-2 fw-medium" id="payment_method" name="payment_method">
                             <option value="UPI" selected>UPI (GPay / PhonePe)</option>
                             <option value="Cash">Cash</option>
                             <option value="Card">Card</option>

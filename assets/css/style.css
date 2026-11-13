@@ -749,6 +749,12 @@ body {
     overflow: hidden;
     color: #ffffff;
 }
+.auth-split-left-admin {
+    background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 30%, #4338ca 75%, #1e1b4b 100%);
+}
+.auth-split-left-otp {
+    background: linear-gradient(135deg, #064e3b 0%, #047857 35%, #4338ca 75%, #1e1b4b 100%);
+}
 .auth-split-left::before {
     content: '';
     position: absolute;
@@ -803,6 +809,253 @@ body {
     font-size: 1rem;
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 12. Modern Page Hero Banner */
+.page-hero-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4f46e5 70%, #2563eb 100%);
+    border-radius: 16px;
+    padding: 2rem 2.25rem;
+    color: #ffffff;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.25);
+}
+.page-hero-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.page-hero-banner h3 {
+    color: #ffffff !important;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+.page-hero-banner p {
+    color: rgba(255, 255, 255, 0.85) !important;
+    max-width: 650px;
+}
+.hero-glass-pill {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    padding: 0.45rem 1rem;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.btn-hero-glass {
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.btn-hero-glass:hover {
+    background: #ffffff;
+    color: #4f46e5;
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+.btn-hero-white {
+    background: #ffffff;
+    color: #4f46e5;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+.btn-hero-white:hover {
+    background: #f8fafc;
+    color: #3730a3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* 13. Elevated Stat Cards */
+.sm-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.35rem 1.4rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+.sm-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px -5px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(79, 70, 229, 0.1);
+}
+.sm-stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0.35rem 0 0.2rem 0;
+}
+.sm-stat-card .stat-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+}
+
+/* 14. Modern Interactive Input Focus & Form System */
+.form-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #475569;
+    margin-bottom: 0.4rem;
+}
+.form-control, .form-select {
+    background-color: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.65rem 0.95rem;
+    font-size: 0.92rem;
+    color: #1e293b;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.form-control:hover, .form-select:hover {
+    border-color: #cbd5e1;
+}
+.form-control:focus, .form-select:focus {
+    background-color: #ffffff;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    outline: none;
+}
+.input-group-text {
+    background-color: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    color: #64748b;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    padding: 0.65rem 0.95rem;
+}
+.input-amount-highlight {
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px;
+    color: #0f172a !important;
+}
+.split-radio-card {
+    position: relative;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.split-radio-card:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    transform: translateY(-2px);
+}
+.split-radio-card.active-split {
+    border-color: #4f46e5 !important;
+    background: #f5f3ff !important;
+    box-shadow: 0 4px 15px -2px rgba(79, 70, 229, 0.15);
+}
+.participant-option-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.participant-option-label:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+.participant-option-label.participant-active {
+    background: #eef2ff !important;
+    border-color: #818cf8 !important;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.08);
+}
+.btn-primary-custom {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 0.7rem 1.5rem;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-primary-custom:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.45);
+}
+.btn-primary-custom:active {
+    transform: translateY(0);
+}
+
+/* 15. OTP 6-Digit Display Inputs */
+.otp-inputs-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.otp-digit-input {
+    width: 52px;
+    height: 58px;
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 800;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+.otp-digit-input:focus {
+    border-color: #4f46e5;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    outline: none;
+}
+
+/* 16. Settlement Flow Chips */
+.settle-flow-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.settle-flow-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.75rem;
 }
 
 

@@ -108,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+$flashes = get_flashes();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -122,114 +123,222 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Main Style -->
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
 </head>
-<body class="auth-wrapper">
+<body style="background: #f8fafc; min-height: 100vh;">
 
-<div class="auth-card" style="max-width: 520px;">
-    <div class="auth-header">
-        <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-4 mb-2" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4);">
-            <i class="fa-solid fa-users text-emerald fs-3" style="color: #10b981;"></i>
+<div class="container-fluid p-0">
+    <div class="row g-0 min-vh-100">
+
+        <!-- ========================================================
+             LEFT: Brand Hero Panel (Emerald & Indigo SaaS)
+             ======================================================== -->
+        <div class="col-lg-5 col-xl-5 d-none d-lg-flex flex-column justify-content-between p-5 auth-split-left position-relative">
+            <!-- Brand Top -->
+            <div class="position-relative" style="z-index: 2;">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="brand-logo-icon rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3);">
+                        <i class="fa-solid fa-calculator text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold text-white mb-0" style="letter-spacing: -0.5px;">Split<span style="color: #34d399;">Mate</span></h3>
+                        <small class="text-white-50">Member Registration & Group Joining</small>
+                    </div>
+                </div>
+                <div class="auth-brand-pill mt-3">
+                    <i class="fa-solid fa-users text-emerald" style="color: #34d399;"></i>
+                    <span>Connect Under Your Administrator's Workspace</span>
+                </div>
+            </div>
+
+            <!-- Middle Feature Showcase -->
+            <div class="my-auto py-4 position-relative" style="z-index: 2;">
+                <h2 class="display-6 fw-bold text-white mb-3" style="line-height: 1.25;">
+                    Track every rupee, split fairly, settle with one click.
+                </h2>
+                <p class="text-white-50 mb-4 fs-6">
+                    Join your designated group admin to start recording personal bills, tracking member receivables, and participating in selective splits.
+                </p>
+
+                <div class="feature-bullets">
+                    <div class="feature-bullet">
+                        <div class="feature-bullet-icon">
+                            <i class="fa-solid fa-envelope-circle-check text-emerald" style="color: #34d399;"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white">Compulsory Email OTP Verification</div>
+                            <small class="text-white-50">Secure 6-digit verification ensures only verified active members join the ledger.</small>
+                        </div>
+                    </div>
+
+                    <div class="feature-bullet">
+                        <div class="feature-bullet-icon">
+                            <i class="fa-solid fa-user-check text-warning"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white">Selective Expense Splitting</div>
+                            <small class="text-white-50">Pay for dinners or cabs and split only with members who actually participated.</small>
+                        </div>
+                    </div>
+
+                    <div class="feature-bullet">
+                        <div class="feature-bullet-icon">
+                            <i class="fa-solid fa-shield-halved text-info"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white">Strict Group Isolation</div>
+                            <small class="text-white-50">Your financial entries remain 100% private and isolated to your chosen administrator.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Badge -->
+            <div class="pt-4 border-top position-relative" style="z-index: 2; border-color: rgba(255,255,255,0.15) !important;">
+                <div class="d-flex align-items-center justify-content-between small text-white-50">
+                    <span><i class="fa-solid fa-lock me-1"></i> End-to-End Group Confidentiality</span>
+                    <span>v2.0 Participant Edition</span>
+                </div>
+            </div>
         </div>
-        <h3 class="fw-bold mb-1">Member Registration</h3>
-        <p class="text-white-50 mb-0 small">Join an expense group managed by an administrator</p>
-    </div>
 
-    <div class="auth-body">
-        <?php if (!empty($error)): ?>
-            <div class="alert alert-danger py-2 small d-flex align-items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span><?= e($error) ?></span>
-            </div>
-        <?php endif; ?>
+        <!-- ========================================================
+             RIGHT: Registration Form Panel
+             ======================================================== -->
+        <div class="col-lg-7 col-xl-7 d-flex flex-column justify-content-center align-items-center p-4 p-md-5 auth-split-right">
+            <div style="width: 100%; max-width: 520px;">
 
-        <form action="" method="POST" novalidate>
-            <?= csrf_field() ?>
-
-            <!-- Full Name -->
-            <div class="mb-3">
-                <label for="full_name" class="form-label">Full Name</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
-                    <input type="text" class="form-control border-start-0" id="full_name" name="full_name" value="<?= e($fullName) ?>" placeholder="e.g. Priya Patel" required>
-                </div>
-            </div>
-
-            <!-- Email & Phone Grid -->
-            <div class="row g-2 mb-3">
-                <div class="col-sm-6">
-                    <label for="email" class="form-label">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
-                        <input type="email" class="form-control border-start-0" id="email" name="email" value="<?= e($email) ?>" placeholder="priya@domain.com" required>
+                <!-- Mobile Brand Header (Visible only on < lg screens) -->
+                <div class="d-lg-none text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-4 mb-2" style="background: linear-gradient(135deg, #4f46e5, #10b981); box-shadow: 0 4px 16px rgba(16,185,129,0.3);">
+                        <i class="fa-solid fa-calculator text-white fs-3"></i>
                     </div>
+                    <h3 class="fw-bold mb-1 text-dark">Split<span style="color: #10b981;">Mate</span></h3>
+                    <p class="text-muted small">Join an expense group managed by an administrator</p>
                 </div>
-                <div class="col-sm-6">
-                    <label for="phone" class="form-label">Phone Number</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-phone"></i></span>
-                        <input type="tel" class="form-control border-start-0" id="phone" name="phone" value="<?= e($phone) ?>" placeholder="+91 9800000003" required>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Select Admin Dropdown -->
-            <div class="mb-3">
-                <label for="admin_id" class="form-label fw-bold text-dark">
-                    <i class="fa-solid fa-shield-halved text-primary me-1"></i> Select Group Administrator
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-users-gear"></i></span>
-                    <select class="form-select border-start-0 fw-medium" id="admin_id" name="admin_id" required>
-                        <option value="">-- Choose an Administrator to Join --</option>
-                        <?php foreach ($activeAdmins as $adm): ?>
-                            <option value="<?= (int)$adm['admin_id'] ?>" <?= ($selectedAdminId === (int)$adm['admin_id']) ? 'selected' : '' ?>>
-                                <?= e($adm['full_name']) ?> (Group #<?= (int)$adm['admin_id'] ?> - <?= e($adm['email']) ?>)
-                            </option>
+                <!-- Form Card -->
+                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border sm-card">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h4 class="fw-bold text-dark mb-0">Create Member Account</h4>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Step 1 of 2</span>
+                        </div>
+                        <p class="text-muted small mb-0">Register your details and select your group administrator</p>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    <?php if (!empty($flashes)): ?>
+                        <?php foreach ($flashes as $f): ?>
+                            <div class="alert alert-<?= e($f['type']) ?> py-2 small d-flex align-items-center gap-2 mb-3">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <span><?= e($f['message']) ?></span>
+                            </div>
                         <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-text" style="font-size: 0.75rem;">You will belong exclusively to this administrator's expense group.</div>
-            </div>
+                    <?php endif; ?>
 
-            <!-- Password & Confirm Password Grid -->
-            <div class="row g-2 mb-4">
-                <div class="col-sm-6">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="••••••••" required>
+                    <?php if (!empty($error)): ?>
+                        <div class="alert alert-danger py-2 small d-flex align-items-center gap-2 mb-3">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span><?= e($error) ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="" method="POST" id="registerForm" novalidate>
+                        <?= csrf_field() ?>
+
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label small fw-semibold text-muted">FULL NAME <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" class="form-control border-start-0 py-2" id="full_name" name="full_name" value="<?= e($fullName) ?>" placeholder="e.g. Priya Patel" required autofocus>
+                            </div>
+                        </div>
+
+                        <!-- Email & Phone Grid -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label for="email" class="form-label small fw-semibold text-muted">EMAIL ADDRESS <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
+                                    <input type="email" class="form-control border-start-0 py-2" id="email" name="email" value="<?= e($email) ?>" placeholder="priya@domain.com" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="phone" class="form-label small fw-semibold text-muted">PHONE NUMBER <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-phone"></i></span>
+                                    <input type="tel" class="form-control border-start-0 py-2" id="phone" name="phone" value="<?= e($phone) ?>" placeholder="+91 9800000003" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Select Admin Dropdown -->
+                        <div class="mb-3">
+                            <label for="admin_id" class="form-label small fw-semibold text-muted d-flex align-items-center justify-content-between">
+                                <span><i class="fa-solid fa-shield-halved text-primary me-1"></i> SELECT GROUP ADMINISTRATOR <span class="text-danger">*</span></span>
+                                <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Multi-Admin</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-users-gear"></i></span>
+                                <select class="form-select border-start-0 py-2 fw-medium" id="admin_id" name="admin_id" required>
+                                    <option value="">-- Choose an Administrator to Join --</option>
+                                    <?php foreach ($activeAdmins as $adm): ?>
+                                        <option value="<?= (int)$adm['admin_id'] ?>" <?= ($selectedAdminId === (int)$adm['admin_id']) ? 'selected' : '' ?>>
+                                            <?= e($adm['full_name']) ?> (Group #<?= (int)$adm['admin_id'] ?> - <?= e($adm['email']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-text text-muted" style="font-size: 0.74rem;">
+                                You will belong exclusively to this administrator's isolated expense group.
+                            </div>
+                        </div>
+
+                        <!-- Password & Confirm Password Grid -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <label for="password" class="form-label small fw-semibold text-muted">PASSWORD <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                                    <input type="password" class="form-control border-start-0 py-2" id="password" name="password" placeholder="At least 6 chars" required minlength="6">
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="confirm_password" class="form-label small fw-semibold text-muted">CONFIRM PASSWORD <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                                    <input type="password" class="form-control border-start-0 py-2" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;">
+                            <span>Continue to Email OTP Verification</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <!-- Footer Links -->
+                    <div class="mt-4 pt-3 border-top text-center">
+                        <span class="small text-muted">Already registered? </span>
+                        <a href="<?= base_url('auth/login.php') ?>" class="text-primary fw-semibold small text-decoration-none">
+                            Sign In to Account
+                        </a>
+                        <div class="mt-2 pt-2 border-top border-light">
+                            <a href="<?= base_url('auth/register_admin.php') ?>" class="text-muted small text-decoration-none">
+                                <i class="fa-solid fa-shield-halved me-1 text-danger"></i> Are you an admin? <strong>Register group with Secret Code</strong>
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
-                    <label for="confirm_password" class="form-label">Confirm Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" class="form-control border-start-0" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-success-custom w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2">
-                <span>Continue & Verify Email OTP</span>
-                <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </form>
-
-        <div class="mt-4 pt-3 border-top text-center">
-            <span class="small text-muted">Already registered? </span>
-            <a href="<?= base_url('auth/login.php') ?>" class="text-primary fw-semibold small text-decoration-none">
-                Sign In to Account
-            </a>
-            <div class="mt-2">
-                <a href="<?= base_url('auth/register_admin.php') ?>" class="text-muted small text-decoration-none">
-                    Are you an administrator? <strong>Register here with secret code</strong>
-                </a>
             </div>
         </div>
+
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

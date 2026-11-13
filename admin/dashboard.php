@@ -14,23 +14,38 @@ $currentPage = 'admin_dashboard';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<!-- Page Header Title & Actions -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-    <div>
-        <h3 class="fw-bold text-dark mb-1">Group Overview</h3>
-        <p class="text-muted mb-0 small">
-            Monitoring expenses and automated settlements for <strong class="text-dark"><?= e($_SESSION['auth_user']['name'] ?? 'Admin') ?>'s Group</strong>
-        </p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2" onclick="triggerSyncSettlements()">
-            <i class="fa-solid fa-arrows-rotate"></i>
-            <span>Recalculate Settlements</span>
-        </button>
-        <button type="button" class="btn btn-primary-custom btn-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Record Expense</span>
-        </button>
+<!-- ========================================================
+     Modern Admin Page Hero Banner
+     ======================================================== -->
+<div class="page-hero-banner" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #312e81 70%, #4338ca 100%);">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 position-relative" style="z-index: 2;">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="hero-glass-pill">
+                    <i class="fa-solid fa-shield-halved text-warning"></i>
+                    <span>Group Administrator Command Hub</span>
+                </span>
+                <span class="badge bg-light text-dark px-2 py-1">
+                    Group #<?= (int)$adminId ?>
+                </span>
+            </div>
+            <h3 class="display-6 fw-bold mb-1">
+                <?= e($_SESSION['auth_user']['name'] ?? 'Admin') ?>'s Group Overview
+            </h3>
+            <p class="mb-0 small text-white-50">
+                Monitoring collective expenditures, participant share allocations, and automated greedy debt settlements for <?= (int)$stats['total_users'] ?> members.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button type="button" class="btn btn-hero-glass btn-sm px-3 py-2 d-flex align-items-center gap-2" onclick="triggerSyncSettlements()">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Recalculate Settlements</span>
+            </button>
+            <button type="button" class="btn btn-hero-white btn-sm px-3 py-2 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                <i class="fa-solid fa-plus-circle text-primary"></i>
+                <span>Record Expense</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -40,83 +55,91 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="row g-3 mb-4">
     <!-- Total Group Expenses -->
     <div class="col-sm-6 col-xl-4">
-        <div class="sm-stat-card d-flex align-items-center gap-3">
-            <div class="stat-icon-wrapper stat-icon-primary">
+        <div class="sm-stat-card d-flex align-items-center gap-3" style="border-top: 3px solid #4f46e5;">
+            <div class="stat-icon-wrapper stat-icon-primary" style="width: 48px; height: 48px; font-size: 1.3rem;">
                 <i class="fa-solid fa-wallet"></i>
             </div>
             <div>
                 <div class="stat-title">Total Group Expenses</div>
-                <div class="stat-value"><?= format_currency($stats['total_expenses']) ?></div>
-                <div class="stat-subtext">Cumulative spending across group</div>
+                <div class="stat-value text-dark"><?= format_currency($stats['total_expenses']) ?></div>
+                <div class="stat-subtext text-muted small"><i class="fa-solid fa-coins text-primary me-1"></i>Cumulative expenditures</div>
             </div>
         </div>
     </div>
 
     <!-- Total Number of Users -->
     <div class="col-sm-6 col-xl-2">
-        <div class="sm-stat-card">
+        <div class="sm-stat-card" style="border-top: 3px solid #10b981;">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="stat-title mb-0">Total Users</div>
-                <i class="fa-solid fa-users text-primary"></i>
+                <div class="stat-icon-wrapper stat-icon-green" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
             </div>
-            <div class="stat-value"><?= (int)$stats['total_users'] ?></div>
-            <div class="stat-subtext">Active members</div>
+            <div class="stat-value text-dark"><?= (int)$stats['total_users'] ?></div>
+            <div class="stat-subtext text-muted small">Active members</div>
         </div>
     </div>
 
     <!-- Total Expense Entries -->
     <div class="col-sm-6 col-xl-2">
-        <div class="sm-stat-card">
+        <div class="sm-stat-card" style="border-top: 3px solid #f59e0b;">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="stat-title mb-0">Total Entries</div>
-                <i class="fa-solid fa-receipt text-warning"></i>
+                <div class="stat-icon-wrapper stat-icon-amber" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
             </div>
-            <div class="stat-value"><?= (int)$stats['total_entries'] ?></div>
-            <div class="stat-subtext">Recorded transactions</div>
+            <div class="stat-value text-dark"><?= (int)$stats['total_entries'] ?></div>
+            <div class="stat-subtext text-muted small">Recorded entries</div>
         </div>
     </div>
 
     <!-- Average Share Per User -->
     <div class="col-sm-6 col-xl-2">
-        <div class="sm-stat-card">
+        <div class="sm-stat-card" style="border-top: 3px solid #06b6d4;">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="stat-title mb-0">Avg Share / User</div>
-                <i class="fa-solid fa-scale-balanced text-info"></i>
+                <div class="stat-icon-wrapper" style="width: 32px; height: 32px; font-size: 0.85rem; background: #ecfeff; color: #0891b2;">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
             </div>
-            <div class="stat-value" style="font-size: 1.35rem;"><?= format_currency($matrix['fair_share'] ?? $stats['avg_per_user']) ?></div>
-            <div class="stat-subtext">Avg across <?= $matrix['active_members_count'] ?? $stats['total_users'] ?> members</div>
+            <div class="stat-value text-dark" style="font-size: 1.35rem;"><?= format_currency($matrix['fair_share'] ?? $stats['avg_per_user']) ?></div>
+            <div class="stat-subtext text-muted small">Per active member</div>
         </div>
     </div>
 
     <!-- Pending Settlements -->
     <div class="col-sm-6 col-xl-2">
-        <div class="sm-stat-card">
+        <div class="sm-stat-card" style="border-top: 3px solid #ef4444;">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="stat-title mb-0">Pending Settles</div>
-                <i class="fa-solid fa-clock text-danger"></i>
+                <div class="stat-icon-wrapper stat-icon-red" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
             </div>
             <div class="stat-value text-danger"><?= (int)$stats['pending_settlements_count'] ?></div>
-            <div class="stat-subtext"><?= format_currency($stats['pending_settlements_amount']) ?> awaiting</div>
+            <div class="stat-subtext text-muted small"><?= format_currency($stats['pending_settlements_amount']) ?> awaiting</div>
         </div>
     </div>
 </div>
 
 <!-- ========================================================
-     Highest Spender Banner
+     Highest Spender Banner (Gold Trophy Card)
      ======================================================== -->
-<div class="p-3 mb-4 rounded-3 d-flex align-items-center justify-content-between border" style="background: linear-gradient(135deg, #f8fafc, #edf2f7);">
+<div class="p-3 mb-4 rounded-3 d-flex align-items-center justify-content-between border" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #ffffff 100%); border-color: #fde68a !important; box-shadow: 0 4px 15px -3px rgba(245, 158, 11, 0.15);">
     <div class="d-flex align-items-center gap-3">
-        <div class="p-2 rounded-circle bg-warning text-dark fs-5">
+        <div class="p-3 rounded-circle text-white fs-4 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #f59e0b, #d97706); width: 48px; height: 48px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);">
             <i class="fa-solid fa-crown"></i>
         </div>
         <div>
-            <div class="fw-bold text-dark">Top Contributor</div>
-            <div class="small text-muted">User with the highest contribution in your group:</div>
+            <div class="fw-bold text-dark fs-6">Top Group Contributor</div>
+            <div class="small text-muted">Member with the highest recorded expenditures:</div>
         </div>
     </div>
     <div class="text-end">
-        <span class="fs-5 fw-bold text-primary"><?= e($stats['highest_user']['full_name']) ?></span>
-        <div class="badge bg-primary-subtle text-primary fw-bold ms-2 fs-6">
+        <span class="fs-5 fw-bold text-dark"><?= e($stats['highest_user']['full_name']) ?></span>
+        <div class="badge bg-warning text-dark fw-bold ms-2 fs-6 px-3 py-1 shadow-sm">
             <?= format_currency($stats['highest_user']['user_total']) ?>
         </div>
     </div>
