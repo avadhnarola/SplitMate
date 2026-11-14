@@ -29,6 +29,17 @@ $stmt = $pdo->prepare("
 $stmt->execute([$adminId]);
 $settlements = $stmt->fetchAll();
 
+// Fetch all completed settlement payments made by current user
+$stmtUserPaid = $pdo->prepare("
+    SELECT s.*, r.full_name as receiver_name, r.email as receiver_email 
+    FROM settlements s 
+    JOIN users r ON s.receiver_id = r.user_id 
+    WHERE s.admin_id = ? AND s.payer_id = ? AND s.status = 'paid' 
+    ORDER BY s.paid_at DESC, s.settlement_id DESC
+");
+$stmtUserPaid->execute([$adminId, $userId]);
+$myCompletedSettlements = $stmtUserPaid->fetchAll();
+
 $pageTitle = 'Who Owes Whom';
 $currentPage = 'user_settlements';
 require_once __DIR__ . '/../includes/header.php';
@@ -58,10 +69,12 @@ require_once __DIR__ . '/../includes/header.php';
      ======================================================== -->
 <?php if ($myBalance): ?>
     <?php
-    $totalPaid = (float)($myBalance['total_paid'] ?? $myBalance['total_spent'] ?? 0);
+    $directExpensesPaid = (float)($myBalance['total_paid'] ?? $myBalance['total_spent'] ?? 0);
     $totalOwed = (float)($myBalance['total_owed'] ?? 0);
     $settledPaid = (float)($myBalance['settled_paid'] ?? 0);
     $settledRecv = (float)($myBalance['settled_received'] ?? 0);
+    $combinedTotalPaid = $directExpensesPaid + $settledPaid;
+    $totalPaid = $directExpensesPaid;
     $bal = (float)$myBalance['net_balance'];
     $isReceiving = ($bal > 0.005);
     $isOwing = ($bal < -0.005);
@@ -102,8 +115,17 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="col-sm-6 col-xl-3">
             <div class="sm-stat-card">
                 <div class="stat-title">Total Paid</div>
-                <div class="stat-value text-primary"><?= format_currency($totalPaid) ?></div>
-                <div class="stat-subtext">Direct out-of-pocket expenses</div>
+                <div class="stat-value text-primary"><?= format_currency($combinedTotalPaid) ?></div>
+                <div class="pt-2 mt-1 border-top" style="font-size: 0.78rem;">
+                    <div class="d-flex justify-content-between align-items-center text-muted mb-1">
+                        <span><i class="fa-solid fa-receipt text-primary me-1"></i>1. Expenses:</span>
+                        <strong class="text-dark"><?= format_currency($directExpensesPaid) ?></strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center text-muted">
+                        <span><i class="fa-solid fa-handshake text-success me-1"></i>2. Settled:</span>
+                        <strong class="text-success"><?= format_currency($settledPaid) ?></strong>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
@@ -206,6 +228,84 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     <?php endif; ?>
 </div>
+
+<!-- ========================================================
+     My Completed Debt Transfers (Itemized Settlement Payments)
+     ======================================================== -->
+<?php if (!empty($myCompletedSettlements)): ?>
+    <div class="sm-card p-4 mb-4" style="border-left: 4px solid #10b981;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+            <div>
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-circle-check text-success me-2"></i>My Completed Debt Transfers
+                </h5>
+                <small class="text-muted">Itemized record of every settlement payment made by you</small>
+            </div>
+            <div class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6">
+                Total Settled by You: <?= format_currency($settledPaid) ?>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-custom align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 45px;">#</th>
+                        <th>Paid To (Recipient)</th>
+                        <th>Amount Paid</th>
+                        <th>Payment Date & Time</th>
+                        <th>Method</th>
+                        <th>Confirmed By</th>
+                        <th class="text-end">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($myCompletedSettlements as $idx => $cs): ?>
+                        <tr>
+                            <td class="text-muted fw-bold"><?= $idx + 1 ?></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar-sm" style="background: #10b981; width: 24px; height: 24px; font-size: 0.7rem;">
+                                        <?= strtoupper(substr($cs['receiver_name'], 0, 1)) ?>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark"><?= e($cs['receiver_name']) ?></div>
+                                        <?php if (!empty($cs['receiver_email'])): ?>
+                                            <small class="text-muted d-block" style="font-size: 0.72rem;"><?= e($cs['receiver_email']) ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-success fs-6"><?= format_currency($cs['amount']) ?></span>
+                            </td>
+                            <td>
+                                <?= !empty($cs['paid_at']) ? format_date($cs['paid_at']) . ' <small class="text-muted">' . format_time($cs['paid_at']) . '</small>' : '-' ?>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-2 py-1"><?= e($cs['payment_method'] ?? 'UPI') ?></span>
+                            </td>
+                            <td>
+                                <small class="text-muted"><?= e($cs['confirmed_by'] ?? 'User') ?></small>
+                            </td>
+                            <td class="text-end">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                    <i class="fa-solid fa-check-double me-1"></i>Completed
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="2" class="text-dark">Total Settled Debt Paid:</th>
+                        <th colspan="5" class="text-success fw-bold fs-6"><?= format_currency($settledPaid) ?></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+<?php endif; ?>
 
 <!-- ========================================================
      Settlement Status Table

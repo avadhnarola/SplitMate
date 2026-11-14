@@ -256,23 +256,6 @@ $flashes = get_flashes();
                         <?php endforeach; ?>
                     <?php endif; ?>
 
-                    <!-- Dev Mode Helper Alert -->
-                    <?php if (DEV_MODE && !empty($devOtp)): ?>
-                        <div class="alert alert-warning py-2 mb-3 text-start small border-warning" style="background: #fffbeb;">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-flask text-warning fs-5"></i>
-                                    <strong>Dev Mode Testing OTP:</strong>
-                                </div>
-                                <span class="badge bg-warning text-dark">Local</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="text-muted small">Auto-generated passcode:</span>
-                                <span class="badge bg-dark fs-6 px-3 py-1 user-select-all" style="letter-spacing: 2px;"><?= e($devOtp) ?></span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
                     <?php if (!empty($error)): ?>
                         <div class="alert alert-danger py-2 small d-flex align-items-center gap-2 mb-3 text-start">
                             <i class="fa-solid fa-triangle-exclamation"></i>
