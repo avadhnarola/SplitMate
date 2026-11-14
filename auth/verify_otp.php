@@ -141,7 +141,7 @@ $flashes = get_flashes();
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/style.css?v=' . (file_exists(__DIR__ . '/../assets/css/style.css') ? filemtime(__DIR__ . '/../assets/css/style.css') : time())) ?>">
 </head>
 <body style="background: #f8fafc; min-height: 100vh;">
 
@@ -236,7 +236,7 @@ $flashes = get_flashes();
                 </div>
 
                 <!-- Form Card -->
-                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border sm-card text-center">
+                <div class="auth-form-card text-center">
                     <div class="mb-4">
                         <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle mb-3" style="background: #ecfdf5; border: 1px solid #a7f3d0; width: 64px; height: 64px;">
                             <i class="fa-solid fa-envelope-open-text text-success fs-3"></i>

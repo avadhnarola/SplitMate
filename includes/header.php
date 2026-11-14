@@ -24,10 +24,12 @@ $flashes = get_flashes();
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <!-- Custom SaaS Theme Styles -->
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+    <!-- Custom SaaS Theme Styles (Cache-busting version query) -->
+    <link rel="stylesheet" href="<?= base_url('assets/css/style.css?v=' . (file_exists(__DIR__ . '/../assets/css/style.css') ? filemtime(__DIR__ . '/../assets/css/style.css') : time())) ?>">
+    <meta name="csrf-token" content="<?= e(get_csrf_token()) ?>">
 </head>
 <body>
+<input type="hidden" id="app_global_csrf_token" name="csrf_token" value="<?= e(get_csrf_token()) ?>">
 
 <div class="app-wrapper">
     <!-- Sidebar Navigation -->

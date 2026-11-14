@@ -93,7 +93,7 @@ $flashes = get_flashes();
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/style.css?v=' . (file_exists(__DIR__ . '/../assets/css/style.css') ? filemtime(__DIR__ . '/../assets/css/style.css') : time())) ?>">
 </head>
 <body style="background: #f8fafc; min-height: 100vh;">
 
@@ -188,9 +188,14 @@ $flashes = get_flashes();
                 </div>
 
                 <!-- Form Card -->
-                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border sm-card">
+                <div class="auth-form-card">
                     <div class="mb-4">
-                        <h4 class="fw-bold text-dark mb-1">Welcome back</h4>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <h4 class="fw-bold text-dark mb-0">Welcome back</h4>
+                            <span class="auth-step-pill" id="rolePill">
+                                <i class="fa-solid fa-user text-primary"></i> Member Space
+                            </span>
+                        </div>
                         <p class="text-muted small mb-0">Sign in to manage shared expenses and view your standing</p>
                     </div>
 
@@ -214,49 +219,56 @@ $flashes = get_flashes();
                     <form action="" method="POST" id="loginForm" novalidate>
                         <?= csrf_field() ?>
 
-                        <!-- Role Selector -->
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-muted mb-2">LOGIN AS</label>
-                            <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="role" id="roleUser" value="user" <?= ($roleVal === 'user') ? 'checked' : '' ?> onchange="updateRoleUi('user')">
-                                <label class="btn btn-outline-primary py-2 fw-semibold" for="roleUser">
-                                    <i class="fa-solid fa-user me-1"></i> Member
-                                </label>
-
-                                <input type="radio" class="btn-check" name="role" id="roleAdmin" value="admin" <?= ($roleVal === 'admin') ? 'checked' : '' ?> onchange="updateRoleUi('admin')">
-                                <label class="btn btn-outline-primary py-2 fw-semibold" for="roleAdmin">
-                                    <i class="fa-solid fa-shield-halved me-1"></i> Admin
-                                </label>
+                        <!-- Sleek Segmented Role Switcher -->
+                        <div class="mb-4">
+                            <label class="form-label d-flex align-items-center justify-content-between mb-2">
+                                <span>SELECT ACCOUNT ROLE</span>
+                                <span class="text-muted small" style="font-size: 0.72rem;">Multi-Admin Architecture</span>
+                            </label>
+                            <div class="auth-role-switcher" role="radiogroup">
+                                <button type="button" class="auth-role-option <?= ($roleVal === 'user') ? 'active-role' : '' ?>" id="roleBtnUser" onclick="setLoginRole('user')">
+                                    <i class="fa-solid fa-user"></i>
+                                    <span>Member</span>
+                                </button>
+                                <button type="button" class="auth-role-option <?= ($roleVal === 'admin') ? 'active-role-admin' : '' ?>" id="roleBtnAdmin" onclick="setLoginRole('admin')">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <span>Administrator</span>
+                                </button>
                             </div>
+                            <input type="hidden" name="role" id="loginRoleInput" value="<?= e($roleVal) ?>">
                         </div>
 
                         <!-- Email Field -->
                         <div class="mb-3">
-                            <label for="email" class="form-label small fw-semibold text-muted">EMAIL ADDRESS</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
-                                <input type="email" class="form-control border-start-0 py-2" id="email" name="email" value="<?= e($emailVal) ?>" placeholder="name@domain.com" required autocomplete="email">
+                            <label for="email" class="form-label d-flex align-items-center justify-content-between">
+                                <span>EMAIL ADDRESS</span>
+                                <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Required</span>
+                            </label>
+                            <div class="input-group auth-input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" value="<?= e($emailVal) ?>" placeholder="name@domain.com" required autocomplete="email">
                             </div>
                         </div>
 
                         <!-- Password Field -->
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label for="password" class="form-label small fw-semibold text-muted mb-0">PASSWORD</label>
-                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-muted" onclick="togglePasswordVisibility('password', this)">
-                                    <i class="fa-solid fa-eye"></i> Show
-                                </button>
+                                <label for="password" class="form-label mb-0">PASSWORD</label>
+                                <span class="text-muted small" style="font-size: 0.72rem;">Encrypted</span>
                             </div>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                                <input type="password" class="form-control border-start-0 py-2" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                            <div class="input-group auth-input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                                <input type="password" class="form-control has-toggle" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                                <button type="button" class="auth-password-toggle" onclick="togglePasswordVisibility('password', this)" title="Show/Hide Password" aria-label="Toggle password">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
                             </div>
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
-                            <span>Sign In</span>
-                            <i class="fa-solid fa-arrow-right"></i>
+                        <button type="submit" id="submitLoginBtn" class="btn btn-auth-submit shadow-sm <?= ($roleVal === 'admin') ? 'btn-auth-submit-admin' : '' ?>">
+                            <span id="submitBtnText">Sign In as Member</span>
+                            <i class="fa-solid fa-arrow-right ms-1"></i>
                         </button>
                     </form>
 
@@ -264,47 +276,13 @@ $flashes = get_flashes();
                     <div class="mt-4 pt-3 border-top text-center">
                         <div class="small text-muted mb-2">Don't have an account yet?</div>
                         <div class="d-flex justify-content-center gap-3">
-                            <a href="<?= base_url('auth/register_user.php') ?>" class="text-primary fw-semibold small text-decoration-none">
-                                <i class="fa-solid fa-user-plus me-1"></i> Register as Member
+                            <a href="<?= base_url('auth/register_user.php') ?>" class="text-primary fw-semibold small text-decoration-none d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-user-plus"></i> Register as Member
                             </a>
                             <span class="text-muted small">&bull;</span>
-                            <a href="<?= base_url('auth/register_admin.php') ?>" class="text-dark fw-semibold small text-decoration-none">
-                                <i class="fa-solid fa-user-shield me-1"></i> Register as Admin
+                            <a href="<?= base_url('auth/register_admin.php') ?>" class="text-dark fw-semibold small text-decoration-none d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-user-shield text-danger"></i> Register as Admin
                             </a>
-                        </div>
-                    </div>
-
-                    <!-- Demo Accounts Accordion -->
-                    <div class="mt-4 pt-3 border-top">
-                        <button class="btn btn-sm btn-outline-secondary w-100 collapsed text-muted d-flex align-items-center justify-content-between" type="button" data-bs-toggle="collapse" data-bs-target="#demoAccountsCollapse" aria-expanded="false">
-                            <span><i class="fa-solid fa-key me-1 text-warning"></i> Quick Demo Accounts</span>
-                            <i class="fa-solid fa-chevron-down small"></i>
-                        </button>
-                        <div class="collapse mt-2" id="demoAccountsCollapse">
-                            <div class="p-3 bg-light rounded-3 border small">
-                                <div class="fw-bold mb-1 text-primary">Admin Accounts:</div>
-                                <div class="d-flex gap-1 mb-2 flex-wrap">
-                                    <button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem;" onclick="fillLogin('admin@splitmate.com', 'Password@123', 'admin')">
-                                        Admin 1 (Avadh Narola)
-                                    </button>
-                                    <button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem;" onclick="fillLogin('vikram@splitmate.com', 'Password@123', 'admin')">
-                                        Admin 2 (Vikram)
-                                    </button>
-                                </div>
-
-                                <div class="fw-bold mb-1 text-success">User Accounts (Admin 1 Group):</div>
-                                <div class="d-flex gap-1 flex-wrap">
-                                    <button type="button" class="btn btn-xs btn-outline-success" style="font-size: 0.75rem;" onclick="fillLogin('avadh@gmail.com', 'Password@123', 'user')">
-                                        Avadh (Member)
-                                    </button>
-                                    <button type="button" class="btn btn-xs btn-outline-success" style="font-size: 0.75rem;" onclick="fillLogin('user2@gmail.com', 'Password@123', 'user')">
-                                        User 2 (Member)
-                                    </button>
-                                    <button type="button" class="btn btn-xs btn-outline-success" style="font-size: 0.75rem;" onclick="fillLogin('user3@gmail.com', 'Password@123', 'user')">
-                                        User 3 (Priya)
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -317,28 +295,39 @@ $flashes = get_flashes();
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function updateRoleUi(role) {
-    // UI reactive tweaks if needed
+function setLoginRole(role) {
+    const input = document.getElementById('loginRoleInput');
+    input.value = role;
+
+    const btnUser = document.getElementById('roleBtnUser');
+    const btnAdmin = document.getElementById('roleBtnAdmin');
+    const rolePill = document.getElementById('rolePill');
+    const submitBtn = document.getElementById('submitLoginBtn');
+    const submitText = document.getElementById('submitBtnText');
+
+    if (role === 'admin') {
+        btnUser.classList.remove('active-role');
+        btnAdmin.classList.add('active-role-admin');
+        rolePill.innerHTML = '<i class=\"fa-solid fa-shield-halved text-danger\"></i> Admin Console';
+        submitBtn.classList.add('btn-auth-submit-admin');
+        submitText.innerText = 'Sign In as Administrator';
+    } else {
+        btnAdmin.classList.remove('active-role-admin');
+        btnUser.classList.add('active-role');
+        rolePill.innerHTML = '<i class=\"fa-solid fa-user text-primary\"></i> Member Space';
+        submitBtn.classList.remove('btn-auth-submit-admin');
+        submitText.innerText = 'Sign In as Member';
+    }
 }
 
 function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
     if (input.type === 'password') {
         input.type = 'text';
-        btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Hide';
+        btn.innerHTML = '<i class=\"fa-solid fa-eye-slash\"></i>';
     } else {
         input.type = 'password';
-        btn.innerHTML = '<i class="fa-solid fa-eye"></i> Show';
-    }
-}
-
-function fillLogin(email, pass, role) {
-    document.getElementById('email').value = email;
-    document.getElementById('password').value = pass;
-    if (role === 'admin') {
-        document.getElementById('roleAdmin').checked = true;
-    } else {
-        document.getElementById('roleUser').checked = true;
+        btn.innerHTML = '<i class=\"fa-solid fa-eye\"></i>';
     }
 }
 </script>

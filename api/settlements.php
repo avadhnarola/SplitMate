@@ -144,6 +144,9 @@ switch ($action) {
             " from {$settlement['payer_name']} to {$settlement['receiver_name']}) confirmed by {$confirmerName}"
         );
 
+        // Immediately resynchronize settlements so balances and instructions reflect the paid transaction
+        sync_settlements_to_database($adminId);
+
         ob_clean();
         echo json_encode([
             'success'      => true,

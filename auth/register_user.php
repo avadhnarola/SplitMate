@@ -121,7 +121,7 @@ $flashes = get_flashes();
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/style.css?v=' . (file_exists(__DIR__ . '/../assets/css/style.css') ? filemtime(__DIR__ . '/../assets/css/style.css') : time())) ?>">
 </head>
 <body style="background: #f8fafc; min-height: 100vh;">
 
@@ -216,13 +216,15 @@ $flashes = get_flashes();
                 </div>
 
                 <!-- Form Card -->
-                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border sm-card">
+                <div class="auth-form-card">
                     <div class="mb-4">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <h4 class="fw-bold text-dark mb-0">Create Member Account</h4>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Step 1 of 2</span>
+                            <span class="auth-step-pill">
+                                <span class="badge bg-primary text-white rounded-pill px-2">1 of 2</span> Credentials
+                            </span>
                         </div>
-                        <p class="text-muted small mb-0">Register your details and select your group administrator</p>
+                        <p class="text-muted small mb-0">Register your profile and connect to your group administrator</p>
                     </div>
 
                     <!-- Flash Messages -->
@@ -247,75 +249,101 @@ $flashes = get_flashes();
 
                         <!-- Full Name -->
                         <div class="mb-3">
-                            <label for="full_name" class="form-label small fw-semibold text-muted">FULL NAME <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
-                                <input type="text" class="form-control border-start-0 py-2" id="full_name" name="full_name" value="<?= e($fullName) ?>" placeholder="e.g. Priya Patel" required autofocus>
+                            <label for="full_name" class="form-label d-flex align-items-center justify-content-between">
+                                <span>FULL NAME</span>
+                                <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Required</span>
+                            </label>
+                            <div class="input-group auth-input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" class="form-control" id="full_name" name="full_name" value="<?= e($fullName) ?>" placeholder="e.g. Priya Patel" required autofocus>
                             </div>
                         </div>
 
                         <!-- Email & Phone Grid -->
                         <div class="row g-3 mb-3">
                             <div class="col-sm-6">
-                                <label for="email" class="form-label small fw-semibold text-muted">EMAIL ADDRESS <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
-                                    <input type="email" class="form-control border-start-0 py-2" id="email" name="email" value="<?= e($email) ?>" placeholder="priya@domain.com" required>
+                                <label for="email" class="form-label d-flex align-items-center justify-content-between">
+                                    <span>EMAIL ADDRESS</span>
+                                    <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">OTP</span>
+                                </label>
+                                <div class="input-group auth-input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" value="<?= e($email) ?>" placeholder="priya@domain.com" required>
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <label for="phone" class="form-label small fw-semibold text-muted">PHONE NUMBER <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-phone"></i></span>
-                                    <input type="tel" class="form-control border-start-0 py-2" id="phone" name="phone" value="<?= e($phone) ?>" placeholder="+91 9800000003" required>
+                                <label for="phone" class="form-label d-flex align-items-center justify-content-between">
+                                    <span>PHONE NUMBER</span>
+                                    <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Contact</span>
+                                </label>
+                                <div class="input-group auth-input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="<?= e($phone) ?>" placeholder="+91 9800000003" required>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Select Admin Dropdown -->
                         <div class="mb-3">
-                            <label for="admin_id" class="form-label small fw-semibold text-muted d-flex align-items-center justify-content-between">
-                                <span><i class="fa-solid fa-shield-halved text-primary me-1"></i> SELECT GROUP ADMINISTRATOR <span class="text-danger">*</span></span>
+                            <label for="admin_id" class="form-label d-flex align-items-center justify-content-between">
+                                <span><i class="fa-solid fa-shield-halved text-primary me-1"></i> GROUP ADMINISTRATOR</span>
                                 <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Multi-Admin</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-users-gear"></i></span>
-                                <select class="form-select border-start-0 py-2 fw-medium" id="admin_id" name="admin_id" required>
-                                    <option value="">-- Choose an Administrator to Join --</option>
+                            <div class="input-group auth-input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-users-gear"></i></span>
+                                <select class="form-select fw-semibold" id="admin_id" name="admin_id" required>
+                                    <option value="">-- Choose Group Administrator to Join --</option>
                                     <?php foreach ($activeAdmins as $adm): ?>
                                         <option value="<?= (int)$adm['admin_id'] ?>" <?= ($selectedAdminId === (int)$adm['admin_id']) ? 'selected' : '' ?>>
-                                            <?= e($adm['full_name']) ?> (Group #<?= (int)$adm['admin_id'] ?> - <?= e($adm['email']) ?>)
+                                            <?= e($adm['full_name']) ?> (Group #<?= (int)$adm['admin_id'] ?>)
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="form-text text-muted" style="font-size: 0.74rem;">
-                                You will belong exclusively to this administrator's isolated expense group.
+                            <div class="form-text text-muted small mt-1">
+                                <i class="fa-solid fa-circle-check text-success me-1"></i>You will join this administrator's secure isolated group.
                             </div>
                         </div>
 
                         <!-- Password & Confirm Password Grid -->
                         <div class="row g-3 mb-4">
                             <div class="col-sm-6">
-                                <label for="password" class="form-label small fw-semibold text-muted">PASSWORD <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                                    <input type="password" class="form-control border-start-0 py-2" id="password" name="password" placeholder="At least 6 chars" required minlength="6">
+                                <label for="password" class="form-label d-flex align-items-center justify-content-between">
+                                    <span>PASSWORD</span>
+                                    <span class="text-muted small" style="font-size: 0.7rem;">Min 6</span>
+                                </label>
+                                <div class="input-group auth-input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                                    <input type="password" class="form-control has-toggle" id="password" name="password" placeholder="At least 6 chars" required minlength="6" oninput="checkStrength(this.value)">
+                                    <button type="button" class="auth-password-toggle" onclick="togglePass('password', this)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="password-meter">
+                                    <div class="password-meter-segment" id="meter1"></div>
+                                    <div class="password-meter-segment" id="meter2"></div>
+                                    <div class="password-meter-segment" id="meter3"></div>
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <label for="confirm_password" class="form-label small fw-semibold text-muted">CONFIRM PASSWORD <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                                    <input type="password" class="form-control border-start-0 py-2" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                                <label for="confirm_password" class="form-label d-flex align-items-center justify-content-between">
+                                    <span>CONFIRM PASSWORD</span>
+                                    <span class="text-muted small" style="font-size: 0.7rem;">Match</span>
+                                </label>
+                                <div class="input-group auth-input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-shield-check"></i></span>
+                                    <input type="password" class="form-control has-toggle" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                                    <button type="button" class="auth-password-toggle" onclick="togglePass('confirm_password', this)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;">
+                        <button type="submit" class="btn btn-auth-submit shadow-sm">
                             <span>Continue to Email OTP Verification</span>
-                            <i class="fa-solid fa-arrow-right"></i>
+                            <i class="fa-solid fa-arrow-right ms-1"></i>
                         </button>
                     </form>
 
@@ -340,5 +368,38 @@ $flashes = get_flashes();
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePass(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+}
+
+function checkStrength(val) {
+    const m1 = document.getElementById('meter1');
+    const m2 = document.getElementById('meter2');
+    const m3 = document.getElementById('meter3');
+    m1.className = 'password-meter-segment';
+    m2.className = 'password-meter-segment';
+    m3.className = 'password-meter-segment';
+
+    if (!val) return;
+    if (val.length < 6) {
+        m1.classList.add('active-weak');
+    } else if (val.length < 9) {
+        m1.classList.add('active-medium');
+        m2.classList.add('active-medium');
+    } else {
+        m1.classList.add('active-strong');
+        m2.classList.add('active-strong');
+        m3.classList.add('active-strong');
+    }
+}
+</script>
 </body>
 </html>

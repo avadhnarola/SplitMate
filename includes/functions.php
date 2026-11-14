@@ -254,8 +254,54 @@ function calculate_settlement_matrix(int $admin_id, ?string $period_start = null
         ];
     }
 
+    // 3b. Factor in completed settlements (status = 'paid')
+    // Settlements already transferred reduce debts and receivables
+    $settledPaidSql = "SELECT payer_id, COALESCE(SUM(amount), 0) as total_settled_paid 
+                       FROM settlements 
+                       WHERE admin_id = ? AND status = 'paid'";
+    $settledPaidParams = [$admin_id];
+    if (!empty($period_start) && !empty($period_end)) {
+        $settledPaidSql .= " AND DATE(paid_at) BETWEEN ? AND ?";
+        $settledPaidParams[] = $period_start;
+        $settledPaidParams[] = $period_end;
+    }
+    $settledPaidSql .= " GROUP BY payer_id";
+
+    $spStmt = $pdo->prepare($settledPaidSql);
+    $spStmt->execute($settledPaidParams);
+    $settledPaidMap = [];
+    while ($row = $spStmt->fetch()) {
+        $paise = (int)round((float)$row['total_settled_paid'] * 100);
+        $settledPaidMap[$row['payer_id']] = [
+            'total_settled_paid' => (float)$row['total_settled_paid'],
+            'total_settled_paid_paise' => $paise
+        ];
+    }
+
+    $settledRecvSql = "SELECT receiver_id, COALESCE(SUM(amount), 0) as total_settled_received 
+                       FROM settlements 
+                       WHERE admin_id = ? AND status = 'paid'";
+    $settledRecvParams = [$admin_id];
+    if (!empty($period_start) && !empty($period_end)) {
+        $settledRecvSql .= " AND DATE(paid_at) BETWEEN ? AND ?";
+        $settledRecvParams[] = $period_start;
+        $settledRecvParams[] = $period_end;
+    }
+    $settledRecvSql .= " GROUP BY receiver_id";
+
+    $srStmt = $pdo->prepare($settledRecvSql);
+    $srStmt->execute($settledRecvParams);
+    $settledRecvMap = [];
+    while ($row = $srStmt->fetch()) {
+        $paise = (int)round((float)$row['total_settled_received'] * 100);
+        $settledRecvMap[$row['receiver_id']] = [
+            'total_settled_received' => (float)$row['total_settled_received'],
+            'total_settled_received_paise' => $paise
+        ];
+    }
+
     // 4. Calculate individual balances in paise
-    // Net balance = Total Paid - Total Owed
+    // Net balance = (Total Expense Paid - Total Expense Owed) + Settled Paid - Settled Received
     $userBalances = [];
     $creditors = [];
     $debtors = [];
@@ -270,7 +316,17 @@ function calculate_settlement_matrix(int $admin_id, ?string $period_start = null
         $owed = $owedMap[$uid]['total_owed'] ?? 0.00;
         $owedPaise = $owedMap[$uid]['total_owed_paise'] ?? 0;
 
-        $netBalancePaise = $paidPaise - $owedPaise;
+        $settledPaid = $settledPaidMap[$uid]['total_settled_paid'] ?? 0.00;
+        $settledPaidPaise = $settledPaidMap[$uid]['total_settled_paid_paise'] ?? 0;
+
+        $settledRecv = $settledRecvMap[$uid]['total_settled_received'] ?? 0.00;
+        $settledRecvPaise = $settledRecvMap[$uid]['total_settled_received_paise'] ?? 0;
+
+        // Raw initial debt balance based solely on recorded expenses
+        $initialBalancePaise = $paidPaise - $owedPaise;
+
+        // Net remaining balance: paying a settlement reduces debt (+), receiving money satisfies credit (-)
+        $netBalancePaise = $initialBalancePaise + $settledPaidPaise - $settledRecvPaise;
         $sumOfBalancesPaise += $netBalancePaise;
 
         $userBalances[$uid] = [
@@ -284,6 +340,12 @@ function calculate_settlement_matrix(int $admin_id, ?string $period_start = null
             'total_paid_paise' => $paidPaise,
             'total_owed' => $owed,
             'total_owed_paise' => $owedPaise,
+            'settled_paid' => $settledPaid,
+            'settled_paid_paise' => $settledPaidPaise,
+            'settled_received' => $settledRecv,
+            'settled_received_paise' => $settledRecvPaise,
+            'initial_balance' => (float)($initialBalancePaise / 100),
+            'initial_balance_paise' => $initialBalancePaise,
             'expense_count' => $count,
             'fair_share' => $fairShare,
             'net_balance' => (float)($netBalancePaise / 100),
@@ -413,14 +475,10 @@ function sync_settlements_to_database(int $admin_id, ?string $period_start = nul
 
     // Map existing pending records by "payer_id:receiver_id"
     $existingPendingMap = [];
-    $existingPaidPairs = [];
-
     foreach ($existing as $row) {
-        $pairKey = $row['payer_id'] . ':' . $row['receiver_id'];
         if ($row['status'] === 'pending') {
+            $pairKey = $row['payer_id'] . ':' . $row['receiver_id'];
             $existingPendingMap[$pairKey] = $row;
-        } else {
-            $existingPaidPairs[$pairKey] = $row;
         }
     }
 
@@ -437,7 +495,7 @@ function sync_settlements_to_database(int $admin_id, ?string $period_start = nul
                 $upStmt = $pdo->prepare("UPDATE settlements SET amount = ?, updated_at = NOW() WHERE settlement_id = ?");
                 $upStmt->execute([$inst['amount'], $existingId]);
             }
-        } elseif (!isset($existingPaidPairs[$pairKey])) {
+        } else {
             // Insert new pending settlement
             $inStmt = $pdo->prepare("INSERT INTO settlements (admin_id, payer_id, receiver_id, amount, period_start, period_end, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())");
             $inStmt->execute([

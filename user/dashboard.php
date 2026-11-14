@@ -16,9 +16,12 @@ $matrix = calculate_settlement_matrix($adminId);
 $userBal = $matrix['user_balances'][$userId] ?? null;
 $totalPaid = $userBal['total_paid'] ?? $stats['my_total'];
 $totalOwed = $userBal['total_owed'] ?? $stats['my_fair_share'];
+$settledPaid = (float)($userBal['settled_paid'] ?? 0.00);
+$settledRecv = (float)($userBal['settled_received'] ?? 0.00);
 $myBal = (float)($userBal['net_balance'] ?? $stats['my_balance']);
-$isReceiving = ($myBal > 0);
-$isOwing = ($myBal < 0);
+$isReceiving = ($myBal > 0.005);
+$isOwing = ($myBal < -0.005);
+$isSettled = (!$isReceiving && !$isOwing);
 
 $pageTitle = 'My Dashboard';
 $currentPage = 'user_dashboard';
@@ -45,8 +48,8 @@ require_once __DIR__ . '/../includes/header.php';
                         <i class="fa-solid fa-arrow-up-right me-1"></i>Payable <?= format_currency(abs($myBal)) ?>
                     </span>
                 <?php else: ?>
-                    <span class="badge bg-light text-dark px-2 py-1">
-                        <i class="fa-solid fa-check me-1"></i>All Squared Up
+                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                        <i class="fa-solid fa-circle-check me-1"></i>All Squared Up (₹0.00)
                     </span>
                 <?php endif; ?>
             </div>
@@ -85,23 +88,34 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <div class="stat-value text-dark"><?= format_currency($totalPaid) ?></div>
             <div class="stat-subtext text-muted small">
-                <i class="fa-solid fa-receipt text-primary me-1"></i><?= $stats['my_count'] ?> expenses paid by you
+                <i class="fa-solid fa-receipt text-primary me-1"></i><?= $stats['my_count'] ?> expenses recorded
+                <?php if ($settledPaid > 0): ?>
+                    <span class="text-success ms-1">• +<?= format_currency($settledPaid) ?> settled</span>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 
-    <!-- Total You Owe (Assigned Shares) -->
+    <!-- Total You Owe (Assigned Shares vs Outstanding) -->
     <div class="col-sm-6 col-xl-3">
-        <div class="sm-stat-card" style="border-top: 3px solid #f59e0b;">
+        <div class="sm-stat-card" style="border-top: 3px solid <?= $isOwing ? '#ef4444' : '#10b981' ?>;">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="stat-title mb-0">Total You Owe</div>
-                <div class="stat-icon-wrapper stat-icon-amber" style="width: 38px; height: 38px; font-size: 1rem;">
-                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                <div class="stat-icon-wrapper <?= $isOwing ? 'stat-icon-red' : 'stat-icon-green' ?>" style="width: 38px; height: 38px; font-size: 1rem;">
+                    <i class="fa-solid <?= $isOwing ? 'fa-hand-holding-dollar' : 'fa-check' ?>"></i>
                 </div>
             </div>
-            <div class="stat-value text-warning"><?= format_currency($totalOwed) ?></div>
+            <div class="stat-value <?= $isOwing ? 'text-danger' : 'text-success' ?>">
+                <?= $isOwing ? format_currency(abs($myBal)) : '₹0.00' ?>
+            </div>
             <div class="stat-subtext text-muted small">
-                <i class="fa-solid fa-users text-warning me-1"></i>Your share across all expenses
+                <?php if ($isOwing): ?>
+                    <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>Remaining debt (Share: <?= format_currency($totalOwed) ?>)
+                <?php elseif ($settledPaid > 0 && $totalOwed > 0): ?>
+                    <i class="fa-solid fa-shield-check text-success me-1"></i>Share <?= format_currency($totalOwed) ?> fully paid!
+                <?php else: ?>
+                    <i class="fa-solid fa-check text-success me-1"></i>All accounts balanced
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -124,14 +138,14 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- My Current Balance -->
     <div class="col-sm-6 col-xl-3">
-        <div class="sm-stat-card" style="border-top: 3px solid <?= $isReceiving ? '#10b981' : ($isOwing ? '#ef4444' : '#64748b') ?>;">
+        <div class="sm-stat-card" style="border-top: 3px solid <?= $isReceiving ? '#10b981' : ($isOwing ? '#ef4444' : '#059669') ?>;">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <div class="stat-title mb-0">Net Settlement Balance</div>
-                <div class="stat-icon-wrapper <?= $isReceiving ? 'stat-icon-green' : ($isOwing ? 'stat-icon-red' : 'bg-light text-muted') ?>" style="width: 38px; height: 38px; font-size: 1rem;">
-                    <i class="fa-solid <?= $isReceiving ? 'fa-arrow-down-left' : ($isOwing ? 'fa-arrow-up-right' : 'fa-check') ?>"></i>
+                <div class="stat-icon-wrapper <?= $isReceiving ? 'stat-icon-green' : ($isOwing ? 'stat-icon-red' : 'stat-icon-green') ?>" style="width: 38px; height: 38px; font-size: 1rem;">
+                    <i class="fa-solid <?= $isReceiving ? 'fa-arrow-down-left' : ($isOwing ? 'fa-arrow-up-right' : 'fa-circle-check') ?>"></i>
                 </div>
             </div>
-            <div class="stat-value <?= $isReceiving ? 'text-success' : ($isOwing ? 'text-danger' : 'text-dark') ?>">
+            <div class="stat-value <?= $isReceiving ? 'text-success' : ($isOwing ? 'text-danger' : 'text-success') ?>">
                 <?= $isReceiving ? '+' : '' ?><?= format_currency($myBal) ?>
             </div>
             <div class="stat-subtext">
@@ -140,7 +154,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php elseif ($isOwing): ?>
                     <strong class="text-danger small"><i class="fa-solid fa-circle-exclamation me-1"></i>You owe <?= format_currency(abs($myBal)) ?></strong>
                 <?php else: ?>
-                    <span class="text-muted small"><i class="fa-solid fa-check me-1"></i>All squared up</span>
+                    <strong class="text-success small"><i class="fa-solid fa-shield-check me-1"></i>All Squared Up! (₹0.00)</strong>
                 <?php endif; ?>
             </div>
         </div>
@@ -336,7 +350,9 @@ $extraScripts = "
 <script>
 function quickMarkPaid(settlementId) {
     if (!confirm('Are you sure you want to confirm this payment?')) return;
-    const token = document.querySelector('input[name=\"csrf_token\"]').value;
+    const token = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content') 
+               || document.querySelector('input[name=\"csrf_token\"]')?.value 
+               || '';
     const formData = new FormData();
     formData.append('action', 'mark_paid');
     formData.append('settlement_id', settlementId);

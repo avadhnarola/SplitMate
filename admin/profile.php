@@ -109,47 +109,75 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Left Column: Profile Card & Password -->
     <div class="col-lg-6">
         <!-- Profile Details Card -->
-        <div class="sm-card p-4 mb-4">
-            <h5 class="fw-bold text-dark mb-3">
-                <i class="fa-solid fa-user-shield text-primary me-2"></i>Account Details
-            </h5>
+        <div class="sm-card p-4 p-md-5 mb-4" style="border-radius: 16px;">
+            <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-avatar-sm" style="width: 44px; height: 44px; font-size: 1.1rem; background: linear-gradient(135deg, #ef4444, #7c3aed);">
+                        <?= strtoupper(substr($admin['full_name'], 0, 1)) ?>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Administrator Details</h5>
+                        <small class="text-muted">Master group controller profile</small>
+                    </div>
+                </div>
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Admin</span>
+            </div>
 
             <form method="POST" action="">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="update_profile">
 
                 <div class="mb-3">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" class="form-control" name="full_name" value="<?= e($admin['full_name']) ?>" required>
+                    <label class="form-label">Admin Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-user-shield"></i></span>
+                        <input type="text" class="form-control border-start-0" name="full_name" value="<?= e($admin['full_name']) ?>" required>
+                    </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Email Address (Read-only)</label>
-                    <input type="email" class="form-control bg-light" value="<?= e($admin['email']) ?>" readonly>
-                    <div class="form-text small">Your login email serves as your unique admin identity.</div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-envelope"></i></span>
+                        <input type="email" class="form-control border-start-0 bg-light" value="<?= e($admin['email']) ?>" readonly>
+                    </div>
+                    <div class="form-text small text-muted">Your login email serves as your unique admin group identity.</div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Phone Number</label>
-                    <input type="tel" class="form-control" name="phone" value="<?= e($admin['phone']) ?>" required>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-phone"></i></span>
+                        <input type="tel" class="form-control border-start-0" name="phone" value="<?= e($admin['phone']) ?>" required>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Group ID</label>
-                    <input type="text" class="form-control bg-light" value="#<?= (int)$admin['admin_id'] ?>" readonly>
+                <div class="mb-4">
+                    <label class="form-label">Group Sovereign ID</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-hashtag"></i></span>
+                        <input type="text" class="form-control border-start-0 bg-light" value="Group #<?= (int)$admin['admin_id'] ?>" readonly>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary-custom btn-sm">
-                    <i class="fa-solid fa-save me-1"></i> Update Details
+                <button type="submit" class="btn btn-primary-custom d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Update Admin Details</span>
                 </button>
             </form>
         </div>
 
         <!-- Change Password Card -->
-        <div class="sm-card p-4">
-            <h5 class="fw-bold text-dark mb-3">
-                <i class="fa-solid fa-lock text-warning me-2"></i>Change Password
-            </h5>
+        <div class="sm-card p-4 p-md-5" style="border-radius: 16px;">
+            <div class="d-flex align-items-center gap-3 pb-3 mb-4 border-bottom">
+                <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 1.1rem;">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Change Master Password</h5>
+                    <small class="text-muted">Update administrative security credentials</small>
+                </div>
+            </div>
 
             <form method="POST" action="">
                 <?= csrf_field() ?>
@@ -157,7 +185,36 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <div class="mb-3">
                     <label class="form-label">Current Password</label>
-                    <input type="password" class="form-control" name="current_password" required>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-key"></i></span>
+                        <input type="password" class="form-control border-start-0" name="current_password" required placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <label class="form-label">New Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" class="form-control border-start-0" name="new_password" required minlength="6" placeholder="At least 6 chars">
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Confirm New Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" class="form-control border-start-0" name="confirm_password" required placeholder="Repeat password">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-outline-primary d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Update Admin Password</span>
+                </button>
+            </form>
+        </div>
+    </div>
                 </div>
 
                 <div class="row g-2 mb-3">

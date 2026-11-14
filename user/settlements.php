@@ -60,19 +60,21 @@ require_once __DIR__ . '/../includes/header.php';
     <?php
     $totalPaid = (float)($myBalance['total_paid'] ?? $myBalance['total_spent'] ?? 0);
     $totalOwed = (float)($myBalance['total_owed'] ?? 0);
+    $settledPaid = (float)($myBalance['settled_paid'] ?? 0);
+    $settledRecv = (float)($myBalance['settled_received'] ?? 0);
     $bal = (float)$myBalance['net_balance'];
-    $isReceiving = ($bal > 0);
-    $isOwing = ($bal < 0);
+    $isReceiving = ($bal > 0.005);
+    $isOwing = ($bal < -0.005);
     ?>
     <div class="p-4 mb-4 rounded-3 border shadow-sm sm-card" style="background: <?= $isReceiving ? '#ecfdf5' : ($isOwing ? '#fef2f2' : '#f8fafc') ?>; border-color: <?= $isReceiving ? '#a7f3d0' : ($isOwing ? '#fecaca' : '#e2e8f0') ?> !important;">
         <div class="row align-items-center g-3">
             <div class="col-md-7">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="p-3 rounded-circle fs-3 <?= $isReceiving ? 'bg-success text-white' : ($isOwing ? 'bg-danger text-white' : 'bg-secondary text-white') ?>">
+                    <div class="p-3 rounded-circle fs-3 <?= $isReceiving ? 'bg-success text-white' : ($isOwing ? 'bg-danger text-white' : 'bg-success text-white') ?>">
                         <i class="fa-solid <?= $isReceiving ? 'fa-arrow-down-left' : ($isOwing ? 'fa-arrow-up-right' : 'fa-check') ?>"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-1 <?= $isReceiving ? 'text-success' : ($isOwing ? 'text-danger' : 'text-dark') ?>">
+                        <h4 class="fw-bold mb-1 <?= $isReceiving ? 'text-success' : ($isOwing ? 'text-danger' : 'text-success') ?>">
                             <?php if ($isReceiving): ?>
                                 You are owed <?= format_currency($bal) ?>
                             <?php elseif ($isOwing): ?>
@@ -82,7 +84,7 @@ require_once __DIR__ . '/../includes/header.php';
                             <?php endif; ?>
                         </h4>
                         <div class="text-muted small">
-                            <i class="fa-solid fa-circle-info me-1 text-primary"></i>Your balance is based on what you paid vs. your assigned share of each expense.
+                            <i class="fa-solid fa-circle-info me-1 text-primary"></i>Your balance accounts for expenses paid, shares assigned, and confirmed settlements.
                         </div>
                     </div>
                 </div>
@@ -108,16 +110,22 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="sm-stat-card">
                 <div class="stat-title">My Share of Expenses</div>
                 <div class="stat-value text-warning"><?= format_currency($totalOwed) ?></div>
-                <div class="stat-subtext">Total owed across your participated expenses</div>
+                <div class="stat-subtext">
+                    <?php if ($settledPaid > 0): ?>
+                        <span class="text-success"><i class="fa-solid fa-check me-1"></i><?= format_currency($settledPaid) ?> settled</span>
+                    <?php else: ?>
+                        Total share across participated expenses
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="sm-stat-card">
                 <div class="stat-title">Net Balance</div>
-                <div class="stat-value <?= $isReceiving ? 'text-success' : ($isOwing ? 'text-danger' : 'text-dark') ?>">
+                <div class="stat-value <?= $isReceiving ? 'text-success' : ($isOwing ? 'text-danger' : 'text-success') ?>">
                     <?= ($bal > 0 ? '+' : '') . format_currency($bal) ?>
                 </div>
-                <div class="stat-subtext"><?= $isReceiving ? 'Receivable from group' : ($isOwing ? 'Payable to group' : 'All balanced') ?></div>
+                <div class="stat-subtext"><?= $isReceiving ? 'Receivable from group' : ($isOwing ? 'Payable to group' : 'All balanced (₹0.00)') ?></div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">

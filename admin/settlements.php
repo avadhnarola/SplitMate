@@ -158,7 +158,12 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark"><?= e($b['full_name']) ?></div>
-                                    <small class="text-muted">Paid: <?= format_currency($b['total_paid'] ?? $b['total_spent']) ?> | Share: <?= format_currency($b['total_owed'] ?? 0) ?></small>
+                                    <small class="text-muted">
+                                        Paid: <?= format_currency($b['total_paid'] ?? $b['total_spent']) ?> | Share: <?= format_currency($b['total_owed'] ?? 0) ?>
+                                        <?php if (!empty($b['settled_received'])): ?>
+                                            <span class="text-success ms-1">• <?= format_currency($b['settled_received']) ?> received</span>
+                                        <?php endif; ?>
+                                    </small>
                                 </div>
                             </div>
                             <div class="text-end">
@@ -199,7 +204,12 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark"><?= e($b['full_name']) ?></div>
-                                    <small class="text-muted">Paid: <?= format_currency($b['total_paid'] ?? $b['total_spent']) ?> | Share: <?= format_currency($b['total_owed'] ?? 0) ?></small>
+                                    <small class="text-muted">
+                                        Paid: <?= format_currency($b['total_paid'] ?? $b['total_spent']) ?> | Share: <?= format_currency($b['total_owed'] ?? 0) ?>
+                                        <?php if (!empty($b['settled_paid'])): ?>
+                                            <span class="text-info ms-1">• <?= format_currency($b['settled_paid']) ?> settled</span>
+                                        <?php endif; ?>
+                                    </small>
                                 </div>
                             </div>
                             <div class="text-end">
@@ -242,10 +252,11 @@ require_once __DIR__ . '/../includes/header.php';
                 <tr>
                     <th style="width: 50px;">#</th>
                     <th>Member</th>
-                    <th>Total Paid</th>
-                    <th>Total Owed (Share)</th>
+                    <th>Expenses Paid</th>
+                    <th>Assigned Share</th>
+                    <th>Settled Transferred</th>
                     <th>
-                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Balance = Total Paid − Total Share Assigned Across All Participated Expenses" style="cursor: help; border-bottom: 1px dashed #64748b;">
+                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Net Balance = (Expenses Paid − Assigned Share) + Settled Paid − Settled Received" style="cursor: help; border-bottom: 1px dashed #64748b;">
                             Net Balance <i class="fa-solid fa-circle-question small text-muted"></i>
                         </span>
                     </th>
@@ -255,17 +266,20 @@ require_once __DIR__ . '/../includes/header.php';
             <tbody>
                 <?php if (empty($matrix['user_balances'])): ?>
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">No active members found.</td>
+                        <td colspan="7" class="text-center py-4 text-muted">No active members found.</td>
                     </tr>
                 <?php else: ?>
                     <?php 
                     $uIdx = 1;
                     foreach ($matrix['user_balances'] as $u): 
                         $net = (float)$u['net_balance'];
-                        $isCred = ($net > 0);
-                        $isDebt = ($net < 0);
+                        $isCred = ($net > 0.005);
+                        $isDebt = ($net < -0.005);
+                        $isZero = (!$isCred && !$isDebt);
                         $paid = (float)($u['total_paid'] ?? $u['total_spent'] ?? 0);
                         $owed = (float)($u['total_owed'] ?? 0);
+                        $settledPaid = (float)($u['settled_paid'] ?? 0);
+                        $settledRecv = (float)($u['settled_received'] ?? 0);
                     ?>
                         <tr>
                             <td class="text-muted small"><?= $uIdx++ ?></td>
@@ -283,7 +297,20 @@ require_once __DIR__ . '/../includes/header.php';
                             <td class="fw-semibold text-dark"><?= format_currency($paid) ?></td>
                             <td class="fw-semibold text-muted"><?= format_currency($owed) ?></td>
                             <td>
-                                <span class="fw-bold <?= $isCred ? 'text-success' : ($isDebt ? 'text-danger' : 'text-secondary') ?>" data-bs-toggle="tooltip" title="Balance = Total Paid − Total Share Assigned Across All Participated Expenses">
+                                <?php if ($settledPaid > 0): ?>
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1" data-bs-toggle="tooltip" title="Money paid to settle debts">
+                                        <i class="fa-solid fa-arrow-up-right me-1"></i><?= format_currency($settledPaid) ?> Paid
+                                    </span>
+                                <?php elseif ($settledRecv > 0): ?>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" data-bs-toggle="tooltip" title="Money received from debtors">
+                                        <i class="fa-solid fa-arrow-down-left me-1"></i><?= format_currency($settledRecv) ?> Recv
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <span class="fw-bold <?= $isCred ? 'text-success' : ($isDebt ? 'text-danger' : 'text-secondary') ?>" data-bs-toggle="tooltip" title="Remaining unsettled balance">
                                     <?= ($isCred ? '+' : '') . format_currency($net) ?>
                                 </span>
                             </td>
@@ -297,9 +324,15 @@ require_once __DIR__ . '/../includes/header.php';
                                         <i class="fa-solid fa-arrow-up-right me-1"></i> Debtor (Pays)
                                     </span>
                                 <?php else: ?>
-                                    <span class="badge bg-secondary-subtle text-secondary">
-                                        <i class="fa-solid fa-check me-1"></i> Balanced
-                                    </span>
+                                    <?php if ($settledPaid > 0 || $settledRecv > 0): ?>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                            <i class="fa-solid fa-check-double me-1"></i> Settled Up
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="fa-solid fa-check me-1"></i> Balanced
+                                        </span>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </td>
                         </tr>

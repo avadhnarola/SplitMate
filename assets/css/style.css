@@ -1058,4 +1058,569 @@ body {
     font-size: 0.75rem;
 }
 
+/* ========================================================
+   17. Ultra-Modern Modal Form System
+   ======================================================== */
+.modal-content {
+    border: none !important;
+    border-radius: 18px !important;
+    overflow: hidden;
+    box-shadow: 0 20px 45px -5px rgba(15, 23, 42, 0.25), 0 8px 16px -4px rgba(15, 23, 42, 0.1) !important;
+}
+.modal-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%) !important;
+    color: #ffffff !important;
+    padding: 1.25rem 1.75rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.modal-header .modal-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.75;
+    transition: all 0.2s ease;
+}
+.modal-header .btn-close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+.modal-body {
+    padding: 1.75rem !important;
+    background: #ffffff;
+}
+.modal-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #f1f5f9 !important;
+    padding: 1rem 1.75rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* ========================================================
+   18. Advanced Filter Bar System
+   ======================================================== */
+.filter-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    transition: all 0.2s ease;
+}
+.filter-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+}
+.filter-card .form-label {
+    font-size: 0.74rem;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+}
+.filter-card .form-control, .filter-card .form-select {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+/* ========================================================
+   19. Custom Form Controls, Toggles & Checkboxes
+   ======================================================== */
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-top: 0.15em;
+    border: 1.5px solid #cbd5e1;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+.form-check-input:checked {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+.form-check-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+.form-switch .form-check-input {
+    width: 2.25em;
+    height: 1.25em;
+    border-radius: 2em;
+}
+
+/* ========================================================
+   20. Micro-Interaction Field Groups
+   ======================================================== */
+.input-group:focus-within {
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-control,
+.input-group:focus-within .form-select {
+    border-color: #6366f1 !important;
+}
+.input-group .form-control:not(:first-child),
+.input-group .form-select:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.input-group .input-group-text:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Password Eye Button */
+.btn-toggle-eye {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-left: none;
+    color: #64748b;
+    padding: 0.65rem 0.95rem;
+    transition: all 0.2s ease;
+}
+.btn-toggle-eye:hover {
+    color: #4f46e5;
+    background: #f1f5f9;
+}
+
+/* ========================================================
+   20. Elite SaaS Form Design System & Interactive Elements
+   ======================================================== */
+.form-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    letter-spacing: 0.01em;
+}
+
+.form-label .text-danger {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* Polished Inputs and Selects */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 0.92rem;
+    color: #0f172a;
+    background-color: #ffffff;
+    padding: 0.62rem 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.form-control::placeholder {
+    color: #94a3b8;
+    font-size: 0.88rem;
+    font-weight: 400;
+}
+
+.form-control:hover, .form-select:hover {
+    border-color: #cbd5e1;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #ffffff;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12) !important;
+    outline: none;
+}
+
+/* Amount Highlight Input */
+.input-amount-highlight {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #1e1b4b !important;
+    letter-spacing: 0.02em;
+}
+
+/* Styled Input Groups */
+.input-group {
+    border-radius: 10px;
+    transition: box-shadow 0.2s ease;
+}
+
+.input-group:focus-within {
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    border-radius: 10px;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #6366f1 !important;
+    color: #4f46e5 !important;
+    background-color: #f5f3ff !important;
+}
+
+.input-group-text {
+    background-color: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    color: #64748b;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.62rem 0.95rem;
+    transition: all 0.2s ease;
+}
+
+/* Date & Time Picker Improvements */
+input[type="date"].form-control,
+input[type="time"].form-control {
+    color: #1e293b;
+    font-weight: 500;
+}
+
+/* Enhanced Split Radio Cards */
+.split-radio-card {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.split-radio-card:hover {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.split-radio-card.active-split {
+    border-color: #4f46e5 !important;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%) !important;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2), 0 4px 14px rgba(79, 70, 229, 0.08) !important;
+}
+
+/* Participant Item Labels in Split Expense */
+.participant-option-label {
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.participant-option-label:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1 !important;
+    transform: translateY(-1px);
+}
+
+.participant-option-label.participant-active {
+    background-color: #f5f3ff !important;
+    border-color: #818cf8 !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
+}
+
+.participant-checkbox {
+    width: 1.25em;
+    height: 1.25em;
+    cursor: pointer;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.participant-checkbox:checked {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+}
+
+/* Split Preview Summary Card */
+.split-preview-card {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border: 1.5px solid #a7f3d0;
+    border-radius: 14px;
+    padding: 1.15rem 1.35rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+}
+
+.split-preview-amount {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #047857;
+    letter-spacing: -0.02em;
+}
+
+/* Modals */
+.modal-content {
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.25);
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 1.2rem 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #f1f5f9;
+    padding: 1rem 1.5rem;
+    background-color: #f8fafc;
+}
+
+/* Cancel / Back Buttons */
+.btn-outline-custom {
+    border: 1.5px solid #cbd5e1;
+    color: #475569;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.62rem 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-custom:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+
+/* ========================================================
+   21. Premium Auth Form System (Login / Register / OTP)
+   ======================================================== */
+.auth-split-right {
+    background-color: #f8fafc;
+    background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+    background-size: 24px 24px;
+    position: relative;
+}
+
+.auth-form-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+    padding: 2.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Modern Role Switcher in Login */
+.auth-role-switcher {
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 14px;
+    display: flex;
+    gap: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.auth-role-option {
+    flex: 1;
+    text-align: center;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #64748b;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    user-select: none;
+    border: none;
+    background: transparent;
+}
+
+.auth-role-option:hover {
+    color: #1e293b;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.auth-role-option.active-role {
+    background: #ffffff !important;
+    color: #4f46e5 !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.auth-role-option.active-role-admin {
+    background: #ffffff !important;
+    color: #dc2626 !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Auth Inputs Enhancements */
+.auth-input-group .input-group-text {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    color: #64748b;
+    border-radius: 12px 0 0 12px;
+    padding: 0.72rem 1.1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.auth-input-group .form-control,
+.auth-input-group .form-select {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0 12px 12px 0;
+    padding: 0.72rem 1.1rem;
+    font-size: 0.94rem;
+    font-weight: 500;
+    color: #0f172a;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-input-group .form-control.has-toggle {
+    border-radius: 0 !important;
+}
+
+.auth-input-group:focus-within .input-group-text {
+    border-color: #6366f1;
+    background-color: #f5f3ff;
+    color: #4f46e5;
+}
+
+.auth-input-group:focus-within .form-control,
+.auth-input-group:focus-within .form-select {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+/* Password Toggle Eye Button */
+.auth-password-toggle {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+    color: #64748b;
+    padding: 0 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.auth-password-toggle:hover {
+    color: #4f46e5;
+    background: #f1f5f9;
+}
+
+.auth-input-group:focus-within .auth-password-toggle {
+    border-color: #6366f1;
+}
+
+/* Password Strength Meter */
+.password-meter {
+    height: 4px;
+    border-radius: 4px;
+    background: #e2e8f0;
+    overflow: hidden;
+    margin-top: 6px;
+    display: flex;
+    gap: 3px;
+}
+
+.password-meter-segment {
+    flex: 1;
+    height: 100%;
+    border-radius: 2px;
+    background: #e2e8f0;
+    transition: background 0.3s ease;
+}
+
+.password-meter-segment.active-weak { background: #ef4444; }
+.password-meter-segment.active-medium { background: #f59e0b; }
+.password-meter-segment.active-strong { background: #10b981; }
+
+/* Primary Submit Button Glow */
+.btn-auth-submit {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    border-radius: 12px;
+    padding: 0.85rem 1.5rem;
+    box-shadow: 0 4px 18px rgba(79, 70, 229, 0.35);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-auth-submit:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.45);
+}
+
+.btn-auth-submit:active {
+    transform: translateY(0);
+}
+
+.btn-auth-submit-admin {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+    box-shadow: 0 4px 18px rgba(239, 68, 68, 0.35) !important;
+}
+
+.btn-auth-submit-admin:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%) !important;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.45) !important;
+}
+
+/* Quick Demo Chip Buttons */
+.demo-account-chip {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #334155;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.demo-account-chip:hover {
+    border-color: #6366f1;
+    background: #f5f3ff;
+    color: #4f46e5;
+    transform: translateY(-1px);
+}
+
+/* Step Badges */
+.auth-step-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+}
+
 

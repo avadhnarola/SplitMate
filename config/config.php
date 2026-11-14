@@ -2,6 +2,11 @@
 <?php
 // SplitMate Main Configuration File
 
+// Enable error reporting to prevent blank white screens
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+
 // Prevent direct execution outside app
 if (!defined('SPLITMATE_APP')) {
     define('SPLITMATE_APP', true);
@@ -110,6 +115,11 @@ function get_csrf_token() {
     }
 
     return $_SESSION['csrf_token'];
+}
+
+// Alias for get_csrf_token() for backward compatibility
+function csrf_token() {
+    return get_csrf_token();
 }
 
 function csrf_field() {
